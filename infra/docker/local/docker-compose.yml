@@ -75,56 +75,6 @@ services:
     volumes:
       - fullstack_postgres_data:/var/lib/fullstack_db/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: fullstack_redis
-    restart: always
-    ports:
-      - "${REDIS_PORT}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 1s
-      timeout: 5s
-      retries: 5
-
-  celery_worker:
-    image: fullstack_backend:latest
-    depends_on:
-      redis:
-        condition: service_healthy
-      fullstack_db:
-        condition: service_healthy
-      backend_builder:
-        condition: service_completed_successfully
-    working_dir: /app
-    volumes:
-      - ../../../backend/app:/app/app
-      - ../../../backend/libs:/app/libs
-      - ../../../backend/tools:/app/tools
-    env_file:
-      - .env
-    environment:
-      - CELERY_WORKER=1
-    command: celery --quiet -A app.worker worker --loglevel=warning
-
-  celery_beat:
-    image: fullstack_backend:latest
-    depends_on:
-      redis:
-        condition: service_healthy
-      fullstack_db:
-        condition: service_healthy
-      backend_builder:
-        condition: service_completed_successfully
-    working_dir: /app
-    volumes:
-      - ../../../backend/app:/app/app
-      - ../../../backend/libs:/app/libs
-      - ../../../backend/tools:/app/tools
-    env_file:
-      - .env
-    command: celery -A app.worker beat --loglevel=warning
-
 volumes:
   fullstack_postgres_data:
     name: fullstack_postgres_data

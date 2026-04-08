@@ -1,1 +1,0 @@
-export { SlackChannelPicker } from './SlackChannelPicker';

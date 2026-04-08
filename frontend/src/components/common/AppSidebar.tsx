@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { CheckSquare, Home, LogOut, MessageCircle, Tag, User, type LucideIcon } from 'lucide-react';
+import { Home, LogOut, User, type LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { clearUser } from '@/store/components/authSlice';
@@ -60,9 +60,6 @@ const defaultNavGroups: NavGroup[] = [
         label: 'Main',
         items: [
             { title: 'Home', url: '/home', icon: Home },
-            { title: 'Chat', url: '/chat', icon: MessageCircle },
-            { title: 'Todos', url: '/todos', icon: CheckSquare },
-            { title: 'Tags', url: '/tags', icon: Tag },
             { title: 'Profile', url: '/profile', icon: User },
         ],
     },

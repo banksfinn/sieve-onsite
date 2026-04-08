@@ -40,7 +40,7 @@ run:
 # This allow for faster frontend development (hot reloading)
 run_no_frontend:
 	docker compose -f $(DOCKER_COMPOSE_FILE) up fullstack_db -d
-	docker compose -f $(DOCKER_COMPOSE_FILE) up gateway celery_worker celery_beat
+	docker compose -f $(DOCKER_COMPOSE_FILE) up gateway
 
 
 # Run just the gateway for local development
@@ -102,15 +102,6 @@ db_shell:
 	docker compose -f $(DOCKER_COMPOSE_FILE) exec fullstack_db psql -U fullstack_user -d fullstack-db
 
 # ------------------------------------------------------------
-# ----------------- Redis Management -------------------------
-# ------------------------------------------------------------
-.PHONY: redis_reset
-
-redis_reset:
-	docker compose -f $(DOCKER_COMPOSE_FILE) exec redis redis-cli FLUSHALL;
-
-
-# ------------------------------------------------------------
 # ----------------- Release Management -----------------------
 # ------------------------------------------------------------
 .PHONY: release, release_stop, release_logs, release_db_shell
@@ -119,10 +110,10 @@ redis_reset:
 # (which has its own set of env variables + network).
 # Further deployment steps can be done on deployed environments.
 release:
-	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) down todo_gateway todo_frontend todo_celery_worker todo_celery_beat
+	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) down todo_gateway todo_frontend
 	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) build todo_migration todo_frontend
 	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) up todo_migration
-	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) up todo_gateway todo_frontend todo_celery_worker todo_celery_beat -d
+	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) up todo_gateway todo_frontend -d
 
 # Stop the release environment
 release_stop:
