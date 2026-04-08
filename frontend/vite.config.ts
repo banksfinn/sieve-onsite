@@ -17,6 +17,7 @@ export default defineConfig({
     },
     // This is for local development!
     server: {
+        host: true,
         proxy: {
             '/api/gateway/': {
                 target: process.env.FULLSTACK_API_URL || 'http://localhost:1301',

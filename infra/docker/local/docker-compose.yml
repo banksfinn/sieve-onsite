@@ -31,13 +31,21 @@ services:
   frontend:
     build:
       context: ../../../frontend
+      dockerfile: Dockerfile.dev
     depends_on:
       - gateway
     env_file:
       - .env
-    command: yarn dev --host
+    volumes:
+      - ../../../frontend/src:/app/src
+      - ../../../frontend/public:/app/public
+      - ../../../frontend/index.html:/app/index.html
+      - ../../../frontend/vite.config.ts:/app/vite.config.ts
+      - ../../../frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ../../../frontend/postcss.config.js:/app/postcss.config.js
+      - ../../../frontend/tsconfig.json:/app/tsconfig.json
     ports:
-      - ${FRONTEND_PORT}:8080
+      - ${FRONTEND_PORT}:1300
 
   migration:
     image: fullstack_backend:latest
