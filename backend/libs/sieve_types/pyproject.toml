@@ -1,7 +1,7 @@
 [project]
-name = "fullstack_types"
+name = "sieve_types"
 version = "0.1.0"
-description = "Shared Pydantic types for fullstack application"
+description = "Shared Pydantic types for Sieve Onsite application"
 authors = [
     {name = "Finn", email = "finn@claralabs.com"},
 ]

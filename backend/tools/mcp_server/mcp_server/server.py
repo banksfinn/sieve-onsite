@@ -1,5 +1,5 @@
 """
-Dev MCP Server for fullstack-base development tools.
+Dev MCP Server for sieve-onsite development tools.
 
 Provides MCP tools for common development tasks:
 - Sync OpenAPI types to frontend
@@ -38,7 +38,7 @@ class CommandResult(BaseModel):
 
 
 # Create FastMCP server
-mcp = FastMCP(name="Fullstack Dev Tools")
+mcp = FastMCP(name="Sieve Dev Tools")
 
 
 def run_command(cmd: list[str], cwd: Path | None = None) -> CommandResult:

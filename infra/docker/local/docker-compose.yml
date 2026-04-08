@@ -3,7 +3,7 @@ services:
     build:
       context: ../../../backend
       dockerfile: infra/local.Dockerfile
-    image: fullstack_backend:latest
+    image: sieve_backend:latest
     volumes:
       - ../../../backend:/app/backend
     env_file:
@@ -11,9 +11,9 @@ services:
     command: ["echo", "build completed"]
 
   gateway:
-    image: fullstack_backend:latest
+    image: sieve_backend:latest
     depends_on:
-      fullstack_db:
+      sieve_db:
         condition: service_healthy
       backend_builder:
         condition: service_completed_successfully
@@ -48,7 +48,7 @@ services:
       - ${FRONTEND_PORT}:1300
 
   migration:
-    image: fullstack_backend:latest
+    image: sieve_backend:latest
     working_dir: /app
     volumes:
       - ../../../backend/app:/app/app
@@ -56,7 +56,7 @@ services:
       - ../../../backend/tools:/app/tools
       - ../../../backend/alembic.ini:/app/alembic.ini
     depends_on:
-      fullstack_db:
+      sieve_db:
         condition: service_healthy
       backend_builder:
         condition: service_completed_successfully
@@ -64,9 +64,9 @@ services:
       - .env
     command: alembic -c /app/alembic.ini upgrade head
 
-  fullstack_db:
+  sieve_db:
     image: postgres:16
-    container_name: fullstack_db
+    container_name: sieve_db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -81,9 +81,9 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - fullstack_postgres_data:/var/lib/fullstack_db/data
+      - sieve_postgres_data:/var/lib/sieve_db/data
 
 volumes:
-  fullstack_postgres_data:
-    name: fullstack_postgres_data
+  sieve_postgres_data:
+    name: sieve_postgres_data
     driver: local

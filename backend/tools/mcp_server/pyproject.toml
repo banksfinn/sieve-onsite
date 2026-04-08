@@ -1,7 +1,7 @@
 [project]
 name = "mcp_server"
 version = "0.1.0"
-description = "MCP development server for fullstack-base"
+description = "MCP development server for sieve-onsite"
 authors = [
     {name = "Finn", email = "finn@claralabs.com"},
 ]

@@ -39,7 +39,7 @@ run:
 # Run just the gateway and database for local development
 # This allow for faster frontend development (hot reloading)
 run_no_frontend:
-	docker compose -f $(DOCKER_COMPOSE_FILE) up fullstack_db -d
+	docker compose -f $(DOCKER_COMPOSE_FILE) up sieve_db -d
 	docker compose -f $(DOCKER_COMPOSE_FILE) up gateway
 
 
@@ -97,12 +97,12 @@ db_generate_migration:
 
 # Wipe the database
 db_wipe:
-	docker compose -f $(DOCKER_COMPOSE_FILE) run migration psql "postgresql://fullstack_user:password@fullstack_db/postgres" -c "DROP DATABASE \"fullstack-db\" WITH (FORCE); " -c "CREATE DATABASE \"fullstack-db\";"
+	docker compose -f $(DOCKER_COMPOSE_FILE) run migration psql "postgresql://sieve_user:password@sieve_db/postgres" -c "DROP DATABASE \"sieve-db\" WITH (FORCE); " -c "CREATE DATABASE \"sieve-db\";"
 
 # Fully reset the database
 db_reset:
-	docker compose -f $(DOCKER_COMPOSE_FILE) up fullstack_db -d
-	@until docker compose -f $(DOCKER_COMPOSE_FILE) exec fullstack_db pg_isready -U fullstack_user; do \
+	docker compose -f $(DOCKER_COMPOSE_FILE) up sieve_db -d
+	@until docker compose -f $(DOCKER_COMPOSE_FILE) exec sieve_db pg_isready -U sieve_user; do \
 		echo "Waiting for database..."; \
 		sleep 2; \
 	done;
@@ -116,7 +116,7 @@ db_apply_migration:
 
 # This allows you to connect to the database of the local environment
 db_shell:
-	docker compose -f $(DOCKER_COMPOSE_FILE) exec fullstack_db psql -U fullstack_user -d fullstack-db
+	docker compose -f $(DOCKER_COMPOSE_FILE) exec sieve_db psql -U sieve_user -d sieve-db
 
 # ------------------------------------------------------------
 # ----------------- Release Management -----------------------
@@ -142,4 +142,4 @@ release_logs:
 
 # This allows you to connect to the database of the release environment
 release_db_shell:
-	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) exec deploy_fullstack_db psql -U $${POSTGRES_USER:-deploy_fullstack_user} -d $${POSTGRES_DB:-deploy_fullstack-db}
+	docker compose -f $(DEPLOY_DOCKER_COMPOSE_FILE) exec deploy_sieve_db psql -U $${POSTGRES_USER:-deploy_sieve_user} -d $${POSTGRES_DB:-deploy_sieve-db}

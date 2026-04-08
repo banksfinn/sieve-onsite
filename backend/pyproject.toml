@@ -1,17 +1,18 @@
 [project]
-name = "fullstack"
+name = "sieve-onsite"
 version = "0.1.0"
-description = "Full stack application template"
+description = "Sieve Onsite application"
 authors = [
     {name = "Finn", email = "banks.finn@gmail.com"},
 ]
 dependencies = [
-    "fullstack_types",
+    "sieve_types",
     "user_management",
     "oauth_manager",
     "database_manager",
     "logging_manager",
     "storage_manager",
+    "notification_manager",
     "alembic-postgresql-enum>=1.4.0",
     "google-auth>=2.0.0",
     "aiohttp>=3.13.2",
@@ -42,12 +43,13 @@ target-version = "py312"
 convention = "google"
 
 [tool.uv.sources]
-fullstack_types = { path = "libs/fullstack_types", editable = true }
+sieve_types = { path = "libs/sieve_types", editable = true }
 user_management = { path = "libs/user_management", editable = true }
 oauth_manager = { path = "libs/oauth_manager", editable = true }
 database_manager = { path = "libs/database_manager", editable = true }
 logging_manager = { path = "libs/logging_manager", editable = true }
 storage_manager = { path = "libs/storage_manager", editable = true }
+notification_manager = { path = "libs/notification_manager", editable = true }
 mcp_server = { path = "tools/mcp_server", editable = true }
 
 [dependency-groups]

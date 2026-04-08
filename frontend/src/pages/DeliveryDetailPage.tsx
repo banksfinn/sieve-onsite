@@ -22,7 +22,7 @@ import {
     DeliveryFeedbackStatus,
     getSearchClipFeedbackQueryKey,
     getSearchDeliveryFeedbackQueryKey,
-} from '@/openapi/fullstackBase';
+} from '@/openapi/sieveBase';
 import {
     ArrowLeft,
     Play,
@@ -371,9 +371,18 @@ export default function DeliveryDetailPage() {
                                         <ChevronLeft className="h-4 w-4 mr-1" />
                                         Previous
                                     </Button>
-                                    <span className="text-sm text-muted-foreground">
-                                        {selectedClipIndex + 1} of {totalClips}
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm text-muted-foreground">
+                                            {selectedClipIndex + 1} of {totalClips}
+                                        </span>
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() => navigate(`/delivery/${id}/clip/${selectedClip.id}`)}
+                                        >
+                                            Open Full Viewer
+                                        </Button>
+                                    </div>
                                     <Button
                                         variant="outline"
                                         size="sm"

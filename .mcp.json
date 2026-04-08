@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "fullstack-dev": {
+    "sieve-dev": {
       "type": "http",
       "url": "http://localhost:8100/mcp"
     }

@@ -19,3 +19,6 @@ dataset_assignment_table_name = "dataset_assignments"
 
 # Invitations
 invitation_table_name = "invitations"
+
+# LLM
+llm_conversation_message_table_name = "llm_conversation_messages"

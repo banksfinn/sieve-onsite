@@ -1,6 +1,6 @@
 {
-    "name": "Fullstack Base",
-    "short_name": "Fullstack",
+    "name": "Sieve Onsite",
+    "short_name": "Sieve",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
@@ -8,8 +8,13 @@
     "theme_color": "#000000",
     "icons": [
       {
-        "src": "logo.png",
+        "src": "favicon-32.png",
         "sizes": "32x32",
+        "type": "image/png"
+      },
+      {
+        "src": "favicon-192.png",
+        "sizes": "192x192",
         "type": "image/png"
       }
     ]

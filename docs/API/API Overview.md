@@ -8,25 +8,32 @@ Routes are organized by domain in `backend/app/api/routes/`. Each module exports
 
 ```python
 api_router.include_router(user_router, tags=["user"], prefix="/user")
+api_router.include_router(dataset_router, tags=["dataset"], prefix="/dataset")
+api_router.include_router(video_router, tags=["video"], prefix="/video")
+api_router.include_router(clip_router, tags=["clip"], prefix="/clip")
+api_router.include_router(delivery_router, tags=["delivery"], prefix="/delivery")
 api_router.include_router(google_auth_router, tags=["authentication"], prefix="/authentication/google")
 ```
 
-## Current Endpoints
+## Route Groups
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/health` | No | Health check |
-| `POST` | `/api/gateway/authentication/google/login` | No | [[Authentication Routes\|Google login]] |
-| `GET` | `/api/gateway/user/me` | Yes | [[User Routes\|Current user]] |
-| `POST` | `/api/gateway/user/refresh` | Yes | [[User Routes\|Refresh token]] |
-| `GET` | `/api/gateway/user/me/notification-preferences` | Yes | [[User Routes\|Get notification prefs]] |
-| `PATCH` | `/api/gateway/user/me/notification-preferences` | Yes | [[User Routes\|Update notification prefs]] |
+| Group | Prefix | Auth | Description |
+|-------|--------|------|-------------|
+| Health | `/health` | No | Health check |
+| Auth | `/api/gateway/authentication/google` | No | [[Authentication Routes\|Google OAuth]] |
+| User | `/api/gateway/user` | Yes | [[User Routes\|Profile and preferences]] |
+| Dataset | `/api/gateway/dataset` | Yes | [[Domain Routes\|Dataset and version CRUD]] |
+| Video | `/api/gateway/video` | Yes | [[Domain Routes\|Video CRUD]] |
+| Clip | `/api/gateway/clip` | Yes | [[Domain Routes\|Clip CRUD]] |
+| Delivery | `/api/gateway/delivery` | Yes | [[Domain Routes\|Delivery workflow, access, feedback]] |
 
 ## Conventions
 
 - All handlers are `async def` (see [[Async-First Backend]])
 - Request/response types are always Pydantic models, never raw `dict`
 - Protected routes use `UserDependency` (see [[Cookie-Based JWT Auth]])
+- Create endpoints auto-set `created_by`/`user_id` from the authenticated user
+- Nested resources use path params (e.g. `/delivery/{id}/clip/{cid}/feedback`)
 - After adding/changing routes, run `make sync_openapi` (see [[OpenAPI Type Generation]])
 
 ## OpenAPI Documentation
@@ -37,4 +44,5 @@ FastAPI auto-generates OpenAPI docs. Each route gets a unique operation ID via `
 
 - [[Authentication Routes]]
 - [[User Routes]]
+- [[Domain Routes]]
 - [[OpenAPI Type Generation]]

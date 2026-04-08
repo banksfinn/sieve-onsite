@@ -1,11 +1,11 @@
 export default {
-    fullstack_api: {
+    sieve_api: {
         input: {
             target: '../../../backend/tools/openapi/generated/openapi.json',
         },
         output: {
             target: '.',
-            outputFile: 'fullstackAPI.ts',
+            outputFile: 'sieveAPI.ts',
             client: 'react-query',
             baseUrl: '',
             mode: 'single',

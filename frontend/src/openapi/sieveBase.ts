@@ -21,6 +21,14 @@ import type {
 } from '@tanstack/react-query';
 
 import { customAxios } from './customAxios';
+export type AccessLevel = (typeof AccessLevel)[keyof typeof AccessLevel];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AccessLevel = {
+    regular: 'regular',
+    admin: 'admin',
+} as const;
+
 export interface BaseEntitySearchResponseClipFeedback {
     entities: ClipFeedback[];
     metadata: SearchResponseMetadata;
@@ -28,6 +36,11 @@ export interface BaseEntitySearchResponseClipFeedback {
 
 export interface BaseEntitySearchResponseClip {
     entities: Clip[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDatasetAssignment {
+    entities: DatasetAssignment[];
     metadata: SearchResponseMetadata;
 }
 
@@ -53,6 +66,16 @@ export interface BaseEntitySearchResponseDeliveryFeedback {
 
 export interface BaseEntitySearchResponseDelivery {
     entities: Delivery[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseInvitation {
+    entities: Invitation[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseUser {
+    entities: User[];
     metadata: SearchResponseMetadata;
 }
 
@@ -183,6 +206,13 @@ export const ClipRating = {
     unsure: 'unsure',
 } as const;
 
+export interface CreateFakeUserRequest {
+    name: string;
+    email_address: string;
+    role?: UserRole;
+    access_level?: AccessLevel;
+}
+
 export type DatasetDescription = string | null;
 
 export interface Dataset {
@@ -191,6 +221,37 @@ export interface Dataset {
     updated_at: string;
     name: string;
     description?: DatasetDescription;
+}
+
+export interface DatasetAssignment {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    dataset_id: number;
+    user_id: number;
+    role: string;
+}
+
+export interface DatasetAssignmentCreateRequest {
+    dataset_id: number;
+    user_id: number;
+    role: string;
+}
+
+export type DatasetAssignmentQueryDatasetId = number | null;
+
+export type DatasetAssignmentQueryUserId = number | null;
+
+export type DatasetAssignmentQueryRole = string | null;
+
+export interface DatasetAssignmentQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    dataset_id?: DatasetAssignmentQueryDatasetId;
+    user_id?: DatasetAssignmentQueryUserId;
+    role?: DatasetAssignmentQueryRole;
 }
 
 export type DatasetCreateRequestDescription = string | null;
@@ -392,6 +453,40 @@ export interface HealthCheckResponse {
     status: string;
 }
 
+export interface ImpersonateRequest {
+    user_id: number;
+}
+
+export interface Invitation {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    email_address: string;
+    role: string;
+    access_level: string;
+    invited_by: number;
+    accepted?: boolean;
+}
+
+export interface InvitationCreateRequest {
+    email_address: string;
+    role?: string;
+    access_level?: string;
+}
+
+export type InvitationQueryEmailAddress = string | null;
+
+export type InvitationQueryAccepted = boolean | null;
+
+export interface InvitationQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    email_address?: InvitationQueryEmailAddress;
+    accepted?: InvitationQueryAccepted;
+}
+
 export interface SearchResponseMetadata {
     total_count: number;
     limit: number;
@@ -414,6 +509,38 @@ export interface User {
     name: string;
     role?: string;
     access_level?: string;
+}
+
+export type UserQueryEmailAddress = string | null;
+
+export type UserQueryRole = string | null;
+
+export interface UserQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    email_address?: UserQueryEmailAddress;
+    role?: UserQueryRole;
+}
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UserRole = {
+    researcher: 'researcher',
+    gtm: 'gtm',
+    customer: 'customer',
+} as const;
+
+export type UserUpdateRequestRole = string | null;
+
+export type UserUpdateRequestAccessLevel = string | null;
+
+export interface UserUpdateRequest {
+    id: number;
+    role?: UserUpdateRequestRole;
+    access_level?: UserUpdateRequestAccessLevel;
 }
 
 export type ValidationErrorLocItem = string | number;
@@ -1404,6 +1531,290 @@ export function useGetDatasetVersion<
 
     return query;
 }
+
+/**
+ * @summary Search Assignments
+ */
+export const searchAssignments = (
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    signal?: AbortSignal
+) => {
+    return customAxios<BaseEntitySearchResponseDatasetAssignment>({
+        url: `/api/gateway/dataset-assignment`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getSearchAssignmentsQueryKey = (datasetAssignmentQuery?: DatasetAssignmentQuery) => {
+    return [`/api/gateway/dataset-assignment`, datasetAssignmentQuery] as const;
+};
+
+export const getSearchAssignmentsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchAssignments>>,
+    TError = HTTPValidationError,
+>(
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchAssignmentsQueryKey(datasetAssignmentQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchAssignments>>> = ({ signal }) =>
+        searchAssignments(datasetAssignmentQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchAssignments>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchAssignmentsQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchAssignments>>
+>;
+export type SearchAssignmentsQueryError = HTTPValidationError;
+
+export function useSearchAssignments<
+    TData = Awaited<ReturnType<typeof searchAssignments>>,
+    TError = HTTPValidationError,
+>(
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchAssignments>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchAssignments>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchAssignments<
+    TData = Awaited<ReturnType<typeof searchAssignments>>,
+    TError = HTTPValidationError,
+>(
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchAssignments>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchAssignments>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchAssignments<
+    TData = Awaited<ReturnType<typeof searchAssignments>>,
+    TError = HTTPValidationError,
+>(
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Assignments
+ */
+
+export function useSearchAssignments<
+    TData = Awaited<ReturnType<typeof searchAssignments>>,
+    TError = HTTPValidationError,
+>(
+    datasetAssignmentQuery: DatasetAssignmentQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchAssignmentsQueryOptions(datasetAssignmentQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Assignment
+ */
+export const createAssignment = (
+    datasetAssignmentCreateRequest: DatasetAssignmentCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DatasetAssignment>({
+        url: `/api/gateway/dataset-assignment`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetAssignmentCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateAssignmentMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createAssignment>>,
+        TError,
+        { data: DatasetAssignmentCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createAssignment>>,
+    TError,
+    { data: DatasetAssignmentCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createAssignment'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createAssignment>>,
+        { data: DatasetAssignmentCreateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createAssignment(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAssignmentMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createAssignment>>
+>;
+export type CreateAssignmentMutationBody = DatasetAssignmentCreateRequest;
+export type CreateAssignmentMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Assignment
+ */
+export const useCreateAssignment = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createAssignment>>,
+            TError,
+            { data: DatasetAssignmentCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createAssignment>>,
+    TError,
+    { data: DatasetAssignmentCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateAssignmentMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Delete Assignment
+ */
+export const deleteAssignment = (assignmentId: number) => {
+    return customAxios<DatasetAssignment>({
+        url: `/api/gateway/dataset-assignment/${assignmentId}`,
+        method: 'DELETE',
+    });
+};
+
+export const getDeleteAssignmentMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof deleteAssignment>>,
+        TError,
+        { assignmentId: number },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAssignment>>,
+    TError,
+    { assignmentId: number },
+    TContext
+> => {
+    const mutationKey = ['deleteAssignment'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof deleteAssignment>>,
+        { assignmentId: number }
+    > = (props) => {
+        const { assignmentId } = props ?? {};
+
+        return deleteAssignment(assignmentId);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAssignmentMutationResult = NonNullable<
+    Awaited<ReturnType<typeof deleteAssignment>>
+>;
+
+export type DeleteAssignmentMutationError = HTTPValidationError;
+
+/**
+ * @summary Delete Assignment
+ */
+export const useDeleteAssignment = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof deleteAssignment>>,
+            TError,
+            { assignmentId: number },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof deleteAssignment>>,
+    TError,
+    { assignmentId: number },
+    TContext
+> => {
+    const mutationOptions = getDeleteAssignmentMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
 
 /**
  * @summary Search Videos
@@ -3328,6 +3739,619 @@ export const useUpdateClipFeedback = <TError = HTTPValidationError, TContext = u
     TContext
 > => {
     const mutationOptions = getUpdateClipFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary List Users
+ */
+export const listUsers = (userQuery: UserQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseUser>({
+        url: `/api/gateway/admin/users`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getListUsersQueryKey = (userQuery?: UserQuery) => {
+    return [`/api/gateway/admin/users`, userQuery] as const;
+};
+
+export const getListUsersQueryOptions = <
+    TData = Awaited<ReturnType<typeof listUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getListUsersQueryKey(userQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsers>>> = ({ signal }) =>
+        listUsers(userQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof listUsers>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type ListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>;
+export type ListUsersQueryError = HTTPValidationError;
+
+export function useListUsers<
+    TData = Awaited<ReturnType<typeof listUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listUsers>>,
+                    TError,
+                    Awaited<ReturnType<typeof listUsers>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListUsers<
+    TData = Awaited<ReturnType<typeof listUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listUsers>>,
+                    TError,
+                    Awaited<ReturnType<typeof listUsers>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListUsers<
+    TData = Awaited<ReturnType<typeof listUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary List Users
+ */
+
+export function useListUsers<
+    TData = Awaited<ReturnType<typeof listUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getListUsersQueryOptions(userQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Update User
+ */
+export const updateUser = (userId: number, userUpdateRequest: UserUpdateRequest) => {
+    return customAxios<User>({
+        url: `/api/gateway/admin/users/${userId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: userUpdateRequest,
+    });
+};
+
+export const getUpdateUserMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateUser>>,
+        TError,
+        { userId: number; data: UserUpdateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateUser>>,
+    TError,
+    { userId: number; data: UserUpdateRequest },
+    TContext
+> => {
+    const mutationKey = ['updateUser'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateUser>>,
+        { userId: number; data: UserUpdateRequest }
+    > = (props) => {
+        const { userId, data } = props ?? {};
+
+        return updateUser(userId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateUserMutationResult = NonNullable<Awaited<ReturnType<typeof updateUser>>>;
+export type UpdateUserMutationBody = UserUpdateRequest;
+export type UpdateUserMutationError = HTTPValidationError;
+
+/**
+ * @summary Update User
+ */
+export const useUpdateUser = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateUser>>,
+            TError,
+            { userId: number; data: UserUpdateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateUser>>,
+    TError,
+    { userId: number; data: UserUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateUserMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary List Invitations
+ */
+export const listInvitations = (invitationQuery: InvitationQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseInvitation>({
+        url: `/api/gateway/admin/invitations`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getListInvitationsQueryKey = (invitationQuery?: InvitationQuery) => {
+    return [`/api/gateway/admin/invitations`, invitationQuery] as const;
+};
+
+export const getListInvitationsQueryOptions = <
+    TData = Awaited<ReturnType<typeof listInvitations>>,
+    TError = HTTPValidationError,
+>(
+    invitationQuery: InvitationQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof listInvitations>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getListInvitationsQueryKey(invitationQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvitations>>> = ({ signal }) =>
+        listInvitations(invitationQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof listInvitations>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type ListInvitationsQueryResult = NonNullable<Awaited<ReturnType<typeof listInvitations>>>;
+export type ListInvitationsQueryError = HTTPValidationError;
+
+export function useListInvitations<
+    TData = Awaited<ReturnType<typeof listInvitations>>,
+    TError = HTTPValidationError,
+>(
+    invitationQuery: InvitationQuery,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof listInvitations>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listInvitations>>,
+                    TError,
+                    Awaited<ReturnType<typeof listInvitations>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListInvitations<
+    TData = Awaited<ReturnType<typeof listInvitations>>,
+    TError = HTTPValidationError,
+>(
+    invitationQuery: InvitationQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof listInvitations>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listInvitations>>,
+                    TError,
+                    Awaited<ReturnType<typeof listInvitations>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListInvitations<
+    TData = Awaited<ReturnType<typeof listInvitations>>,
+    TError = HTTPValidationError,
+>(
+    invitationQuery: InvitationQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof listInvitations>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary List Invitations
+ */
+
+export function useListInvitations<
+    TData = Awaited<ReturnType<typeof listInvitations>>,
+    TError = HTTPValidationError,
+>(
+    invitationQuery: InvitationQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof listInvitations>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getListInvitationsQueryOptions(invitationQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Invitation
+ */
+export const createInvitation = (
+    invitationCreateRequest: InvitationCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<Invitation>({
+        url: `/api/gateway/admin/invitations`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: invitationCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateInvitationMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createInvitation>>,
+        TError,
+        { data: InvitationCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createInvitation>>,
+    TError,
+    { data: InvitationCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createInvitation'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createInvitation>>,
+        { data: InvitationCreateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createInvitation(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateInvitationMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createInvitation>>
+>;
+export type CreateInvitationMutationBody = InvitationCreateRequest;
+export type CreateInvitationMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Invitation
+ */
+export const useCreateInvitation = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createInvitation>>,
+            TError,
+            { data: InvitationCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createInvitation>>,
+    TError,
+    { data: InvitationCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateInvitationMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Impersonate User
+ */
+export const impersonateUser = (impersonateRequest: ImpersonateRequest, signal?: AbortSignal) => {
+    return customAxios<User>({
+        url: `/api/gateway/admin/impersonate`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: impersonateRequest,
+        signal,
+    });
+};
+
+export const getImpersonateUserMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof impersonateUser>>,
+        TError,
+        { data: ImpersonateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof impersonateUser>>,
+    TError,
+    { data: ImpersonateRequest },
+    TContext
+> => {
+    const mutationKey = ['impersonateUser'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof impersonateUser>>,
+        { data: ImpersonateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return impersonateUser(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type ImpersonateUserMutationResult = NonNullable<
+    Awaited<ReturnType<typeof impersonateUser>>
+>;
+export type ImpersonateUserMutationBody = ImpersonateRequest;
+export type ImpersonateUserMutationError = HTTPValidationError;
+
+/**
+ * @summary Impersonate User
+ */
+export const useImpersonateUser = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof impersonateUser>>,
+            TError,
+            { data: ImpersonateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof impersonateUser>>,
+    TError,
+    { data: ImpersonateRequest },
+    TContext
+> => {
+    const mutationOptions = getImpersonateUserMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Stop Impersonation
+ */
+export const stopImpersonation = (signal?: AbortSignal) => {
+    return customAxios<User>({
+        url: `/api/gateway/admin/stop-impersonation`,
+        method: 'POST',
+        signal,
+    });
+};
+
+export const getStopImpersonationMutationOptions = <
+    TError = unknown,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof stopImpersonation>>,
+        TError,
+        void,
+        TContext
+    >;
+}): UseMutationOptions<Awaited<ReturnType<typeof stopImpersonation>>, TError, void, TContext> => {
+    const mutationKey = ['stopImpersonation'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof stopImpersonation>>,
+        void
+    > = () => {
+        return stopImpersonation();
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type StopImpersonationMutationResult = NonNullable<
+    Awaited<ReturnType<typeof stopImpersonation>>
+>;
+
+export type StopImpersonationMutationError = unknown;
+
+/**
+ * @summary Stop Impersonation
+ */
+export const useStopImpersonation = <TError = unknown, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof stopImpersonation>>,
+            TError,
+            void,
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof stopImpersonation>>, TError, void, TContext> => {
+    const mutationOptions = getStopImpersonationMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Create Fake User
+ */
+export const createFakeUser = (
+    createFakeUserRequest: CreateFakeUserRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<User>({
+        url: `/api/gateway/admin/fake-users`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: createFakeUserRequest,
+        signal,
+    });
+};
+
+export const getCreateFakeUserMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createFakeUser>>,
+        TError,
+        { data: CreateFakeUserRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createFakeUser>>,
+    TError,
+    { data: CreateFakeUserRequest },
+    TContext
+> => {
+    const mutationKey = ['createFakeUser'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createFakeUser>>,
+        { data: CreateFakeUserRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createFakeUser(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateFakeUserMutationResult = NonNullable<Awaited<ReturnType<typeof createFakeUser>>>;
+export type CreateFakeUserMutationBody = CreateFakeUserRequest;
+export type CreateFakeUserMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Fake User
+ */
+export const useCreateFakeUser = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createFakeUser>>,
+            TError,
+            { data: CreateFakeUserRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createFakeUser>>,
+    TError,
+    { data: CreateFakeUserRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateFakeUserMutationOptions(options);
 
     return useMutation(mutationOptions, queryClient);
 };

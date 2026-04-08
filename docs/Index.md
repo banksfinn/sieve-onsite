@@ -23,13 +23,16 @@ Full-stack application for GTM-Engineering video sample review collaboration. Bu
 
 - [[Data Model Overview]] - Entity system and type hierarchy
 - [[BaseEntity]] - Shared fields and base classes
-- [[User Model]] - User entity with notification preferences
+- [[User Model]] - User entity with role and access level
+- [[User Roles and Access]] - Role system (customer/gtm/researcher), access levels, invitations
+- [[Domain Models]] - Dataset, Video, Clip, Delivery, Feedback entities and relationships
 
 ## API
 
 - [[API Overview]] - Route registration and conventions
 - [[Authentication Routes]] - Google OAuth login endpoint
 - [[User Routes]] - User profile and preferences
+- [[Domain Routes]] - Dataset, Video, Clip, Delivery, and Feedback endpoints
 
 ## Design Decisions
 
@@ -47,6 +50,11 @@ Full-stack application for GTM-Engineering video sample review collaboration. Bu
 - [[State Management]] - Redux Toolkit + React Query
 - [[Component Library]] - shadcn/ui + custom components
 - [[shadcn-ui Guide]] - Theming, cn(), forms, icons, component patterns
+- [[Clip Viewer]] - Rich three-panel clip review experience with time-synced metadata
+
+## User Flows
+
+- [[User Flows]] - All user journeys by role (customer, GTM, researcher, admin)
 
 ## Reference
 

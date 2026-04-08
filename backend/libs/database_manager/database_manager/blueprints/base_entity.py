@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
-from fullstack_types.datetimes import AnnotatedArrow
-from fullstack_types.query import DEFAULT_LIMIT, DEFAULT_OFFSET, SortOrder
+from sieve_types.datetimes import AnnotatedArrow
+from sieve_types.query import DEFAULT_LIMIT, DEFAULT_OFFSET, SortOrder
 from pydantic import BaseModel
 from sqlalchemy import Integer, func
 from sqlalchemy.orm import DeclarativeBase

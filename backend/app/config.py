@@ -1,7 +1,7 @@
 import os
 from urllib.parse import urlparse
 
-from fullstack_types.environments import Environment
+from sieve_types.environments import Environment
 from pydantic_settings import BaseSettings
 
 

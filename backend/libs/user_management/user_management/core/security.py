@@ -19,15 +19,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
 
-def generate_access_token(user_id: int) -> str:
+def generate_access_token(user_id: int, impersonated_by: int | None = None) -> str:
     """
     This generates a JWT token for a given user.
+    If impersonated_by is set, the token records which admin is impersonating.
     """
     expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode = TokenEncoding(
         exp=expire.timestamp(),
         user_id=user_id,
+        impersonated_by=impersonated_by,
     )
     return jwt.encode(to_encode.model_dump(), settings.TOKEN_SECRET_KEY, algorithm=ALGORITHM)
 

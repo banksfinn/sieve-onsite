@@ -7,7 +7,9 @@ from user_management.blueprints.user import UserCreateRequest, UserQuery
 from user_management.core.security import generate_access_token, set_access_token_cookie
 from user_management.stores.user import user_store
 
+from app.blueprints.invitation import InvitationQuery, InvitationUpdateRequest
 from app.schemas.authentication.google import GoogleCredentialRequest, GoogleLoginResponse
+from app.stores.invitation import invitation_store
 
 router = APIRouter()
 logger = get_logger()
@@ -38,9 +40,24 @@ async def google_login(request: GoogleCredentialRequest, response: Response) -> 
         if existing_users.entities:
             user = existing_users.entities[0]
         else:
-            # Create new user
-            user = await user_store.create_entity(UserCreateRequest(email_address=email, name=name))
-            logger.info("Created new user", user_id=user.id, email=email)
+            # Check for a pending invitation to determine role/access
+            role = "customer"
+            access_level = "regular"
+            invitations = await invitation_store.search_entities(
+                InvitationQuery(email_address=email, accepted=False)
+            )
+            if invitations.entities:
+                invitation = invitations.entities[0]
+                role = invitation.role
+                access_level = invitation.access_level
+                await invitation_store.update_entity(
+                    InvitationUpdateRequest(id=invitation.id, accepted=True)
+                )
+
+            user = await user_store.create_entity(
+                UserCreateRequest(email_address=email, name=name, role=role, access_level=access_level)
+            )
+            logger.info("Created new user", user_id=user.id, email=email, role=role)
 
         # Generate access token and set cookie
         access_token = generate_access_token(user.id)

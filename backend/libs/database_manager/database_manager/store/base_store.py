@@ -16,7 +16,7 @@ from database_manager.blueprints.base_entity import (
 from database_manager.clients.database_client import database_client
 from database_manager.utils.transaction_handler import get_current_session
 from fastapi.exceptions import HTTPException
-from fullstack_types.query import SortOrder
+from sieve_types.query import SortOrder
 from logging_manager.logger import get_logger
 from sqlalchemy import UnaryExpression, asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession

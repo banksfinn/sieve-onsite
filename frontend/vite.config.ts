@@ -20,7 +20,7 @@ export default defineConfig({
         host: true,
         proxy: {
             '/api/gateway/': {
-                target: process.env.FULLSTACK_API_URL || 'http://localhost:1301',
+                target: process.env.SIEVE_API_URL || 'http://localhost:1301',
                 changeOrigin: true,
                 secure: false,
             },

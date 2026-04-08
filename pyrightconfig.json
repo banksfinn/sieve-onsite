@@ -12,7 +12,7 @@
     "backend/libs/user_management",
     "backend/libs/database_manager",
     "backend/libs/logging_manager",
-    "backend/libs/fullstack_types",
+    "backend/libs/sieve_types",
     "backend/libs/oauth_manager",
     "backend/libs/locking_manager",
     "backend/libs/notification_manager",

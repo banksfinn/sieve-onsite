@@ -17,6 +17,7 @@ class TokenEncoding(BaseModel):
 
     user_id: int
     exp: float
+    impersonated_by: int | None = None
 
 
 class OAuth2BearerCookie(OAuth2):
