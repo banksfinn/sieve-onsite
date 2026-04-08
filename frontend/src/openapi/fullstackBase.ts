@@ -21,57 +21,347 @@ import type {
 } from '@tanstack/react-query';
 
 import { customAxios } from './customAxios';
-export interface AddMemberRequest {
+export interface BaseEntitySearchResponseClipFeedback {
+    entities: ClipFeedback[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseClip {
+    entities: Clip[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDatasetVersion {
+    entities: DatasetVersion[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDataset {
+    entities: Dataset[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDeliveryAccess {
+    entities: DeliveryAccess[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDeliveryFeedback {
+    entities: DeliveryFeedback[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDelivery {
+    entities: Delivery[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseVideo {
+    entities: Video[];
+    metadata: SearchResponseMetadata;
+}
+
+export type ClipAvgFaceSize = number | null;
+
+export type ClipMaxNumFaces = number | null;
+
+export type ClipIsFullBody = boolean | null;
+
+export type ClipHasOverlay = boolean | null;
+
+export interface Clip {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    video_id: number;
+    dataset_version_id: number;
+    uri: string;
+    start_time: number;
+    end_time: number;
+    duration: number;
+    avg_face_size?: ClipAvgFaceSize;
+    max_num_faces?: ClipMaxNumFaces;
+    is_full_body?: ClipIsFullBody;
+    has_overlay?: ClipHasOverlay;
+}
+
+export type ClipCreateRequestAvgFaceSize = number | null;
+
+export type ClipCreateRequestMaxNumFaces = number | null;
+
+export type ClipCreateRequestIsFullBody = boolean | null;
+
+export type ClipCreateRequestHasOverlay = boolean | null;
+
+export interface ClipCreateRequest {
+    video_id: number;
+    dataset_version_id: number;
+    uri: string;
+    start_time: number;
+    end_time: number;
+    duration: number;
+    avg_face_size?: ClipCreateRequestAvgFaceSize;
+    max_num_faces?: ClipCreateRequestMaxNumFaces;
+    is_full_body?: ClipCreateRequestIsFullBody;
+    has_overlay?: ClipCreateRequestHasOverlay;
+}
+
+export type ClipFeedbackComment = string | null;
+
+export type ClipFeedbackTimestamp = number | null;
+
+export type ClipFeedbackMetadataField = string | null;
+
+export type ClipFeedbackResolvedInVersionId = number | null;
+
+export interface ClipFeedback {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    clip_id: number;
+    delivery_id: number;
     user_id: number;
+    rating: ClipRating;
+    comment?: ClipFeedbackComment;
+    timestamp?: ClipFeedbackTimestamp;
+    metadata_field?: ClipFeedbackMetadataField;
+    resolved_in_version_id?: ClipFeedbackResolvedInVersionId;
+    is_resolved?: boolean;
 }
 
-export interface BaseEntitySearchResponseTag {
-    entities: Tag[];
-    metadata: SearchResponseMetadata;
+export type ClipFeedbackCreateRequestComment = string | null;
+
+export type ClipFeedbackCreateRequestTimestamp = number | null;
+
+export type ClipFeedbackCreateRequestMetadataField = string | null;
+
+export interface ClipFeedbackCreateRequest {
+    clip_id: number;
+    delivery_id: number;
+    user_id: number;
+    rating: ClipRating;
+    comment?: ClipFeedbackCreateRequestComment;
+    timestamp?: ClipFeedbackCreateRequestTimestamp;
+    metadata_field?: ClipFeedbackCreateRequestMetadataField;
 }
 
-export interface BaseEntitySearchResponseUser {
-    entities: User[];
-    metadata: SearchResponseMetadata;
+export type ClipFeedbackUpdateRequestRating = ClipRating | null;
+
+export type ClipFeedbackUpdateRequestComment = string | null;
+
+export type ClipFeedbackUpdateRequestResolvedInVersionId = number | null;
+
+export type ClipFeedbackUpdateRequestIsResolved = boolean | null;
+
+export interface ClipFeedbackUpdateRequest {
+    id: number;
+    rating?: ClipFeedbackUpdateRequestRating;
+    comment?: ClipFeedbackUpdateRequestComment;
+    resolved_in_version_id?: ClipFeedbackUpdateRequestResolvedInVersionId;
+    is_resolved?: ClipFeedbackUpdateRequestIsResolved;
 }
 
-/**
- * Response containing list of Slack channels.
- */
-export interface ChannelSearchResponse {
-    channels: SlackChannel[];
+export type ClipQueryVideoId = number | null;
+
+export type ClipQueryDatasetVersionId = number | null;
+
+export interface ClipQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    video_id?: ClipQueryVideoId;
+    dataset_version_id?: ClipQueryDatasetVersionId;
 }
 
-/**
- * Conversation ID for continuity
- */
-export type ChatRequestConversationId = string | null;
+export type ClipRating = (typeof ClipRating)[keyof typeof ClipRating];
 
-/**
- * User's IANA timezone (e.g., 'America/New_York'). Used for interpreting time references.
- */
-export type ChatRequestTimezone = string | null;
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ClipRating = {
+    good: 'good',
+    bad: 'bad',
+    unsure: 'unsure',
+} as const;
 
-/**
- * Request to send a chat message.
- */
-export interface ChatRequest {
-    /** The user's message */
-    message: string;
-    /** Conversation ID for continuity */
-    conversation_id?: ChatRequestConversationId;
-    /** User's IANA timezone (e.g., 'America/New_York'). Used for interpreting time references. */
-    timezone?: ChatRequestTimezone;
+export type DatasetDescription = string | null;
+
+export interface Dataset {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    name: string;
+    description?: DatasetDescription;
 }
 
-/**
- * Response from the chat endpoint.
- */
-export interface ChatResponse {
-    /** The assistant's response */
-    response: string;
-    /** Conversation ID for follow-up messages */
-    conversation_id: string;
+export type DatasetCreateRequestDescription = string | null;
+
+export interface DatasetCreateRequest {
+    name: string;
+    description?: DatasetCreateRequestDescription;
+}
+
+export type DatasetQueryName = string | null;
+
+export interface DatasetQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    name?: DatasetQueryName;
+}
+
+export type DatasetUpdateRequestName = string | null;
+
+export type DatasetUpdateRequestDescription = string | null;
+
+export interface DatasetUpdateRequest {
+    id: number;
+    name?: DatasetUpdateRequestName;
+    description?: DatasetUpdateRequestDescription;
+}
+
+export type DatasetVersionParentVersionId = number | null;
+
+export interface DatasetVersion {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    dataset_id: number;
+    version_number: number;
+    parent_version_id?: DatasetVersionParentVersionId;
+    created_by: number;
+}
+
+export type DatasetVersionCreateRequestParentVersionId = number | null;
+
+export interface DatasetVersionCreateRequest {
+    dataset_id: number;
+    version_number: number;
+    parent_version_id?: DatasetVersionCreateRequestParentVersionId;
+    created_by: number;
+}
+
+export type DeliveryCustomerRequestDescription = string | null;
+
+export interface Delivery {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    dataset_version_id: number;
+    customer_request_description?: DeliveryCustomerRequestDescription;
+    created_by: number;
+    status?: DeliveryStatus;
+}
+
+export interface DeliveryAccess {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    delivery_id: number;
+    user_id: number;
+    role?: DeliveryAccessRole;
+}
+
+export interface DeliveryAccessCreateRequest {
+    delivery_id: number;
+    user_id: number;
+    role?: DeliveryAccessRole;
+}
+
+export type DeliveryAccessRole = (typeof DeliveryAccessRole)[keyof typeof DeliveryAccessRole];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeliveryAccessRole = {
+    viewer: 'viewer',
+    reviewer: 'reviewer',
+    admin: 'admin',
+} as const;
+
+export type DeliveryAccessUpdateRequestRole = DeliveryAccessRole | null;
+
+export interface DeliveryAccessUpdateRequest {
+    id: number;
+    role?: DeliveryAccessUpdateRequestRole;
+}
+
+export type DeliveryCreateRequestCustomerRequestDescription = string | null;
+
+export interface DeliveryCreateRequest {
+    dataset_version_id: number;
+    customer_request_description?: DeliveryCreateRequestCustomerRequestDescription;
+    created_by: number;
+    status?: DeliveryStatus;
+}
+
+export type DeliveryFeedbackSummary = string | null;
+
+export interface DeliveryFeedback {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    delivery_id: number;
+    user_id: number;
+    status: DeliveryFeedbackStatus;
+    summary?: DeliveryFeedbackSummary;
+}
+
+export type DeliveryFeedbackCreateRequestSummary = string | null;
+
+export interface DeliveryFeedbackCreateRequest {
+    delivery_id: number;
+    user_id: number;
+    status: DeliveryFeedbackStatus;
+    summary?: DeliveryFeedbackCreateRequestSummary;
+}
+
+export type DeliveryFeedbackStatus =
+    (typeof DeliveryFeedbackStatus)[keyof typeof DeliveryFeedbackStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeliveryFeedbackStatus = {
+    approved: 'approved',
+    needs_changes: 'needs_changes',
+    rejected: 'rejected',
+} as const;
+
+export type DeliveryQueryStatus = DeliveryStatus | null;
+
+export type DeliveryQueryDatasetVersionId = number | null;
+
+export type DeliveryQueryCreatedBy = number | null;
+
+export interface DeliveryQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    status?: DeliveryQueryStatus;
+    dataset_version_id?: DeliveryQueryDatasetVersionId;
+    created_by?: DeliveryQueryCreatedBy;
+}
+
+export type DeliveryStatus = (typeof DeliveryStatus)[keyof typeof DeliveryStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeliveryStatus = {
+    draft: 'draft',
+    sent_to_customer: 'sent_to_customer',
+    in_review: 'in_review',
+    feedback_received: 'feedback_received',
+    iterating: 'iterating',
+    ready_for_approval: 'ready_for_approval',
+    approved: 'approved',
+    rejected: 'rejected',
+} as const;
+
+export type DeliveryUpdateRequestStatus = DeliveryStatus | null;
+
+export type DeliveryUpdateRequestCustomerRequestDescription = string | null;
+
+export interface DeliveryUpdateRequest {
+    id: number;
+    status?: DeliveryUpdateRequestStatus;
+    customer_request_description?: DeliveryUpdateRequestCustomerRequestDescription;
 }
 
 /**
@@ -102,233 +392,19 @@ export interface HealthCheckResponse {
     status: string;
 }
 
-export type NotificationPreferencesNotificationTiming = string[] | null;
-
-export type NotificationPreferencesNotificationCustomMinutes = number | null;
-
-/**
- * User notification preferences.
- */
-export interface NotificationPreferences {
-    notification_timing?: NotificationPreferencesNotificationTiming;
-    notification_custom_minutes?: NotificationPreferencesNotificationCustomMinutes;
-}
-
 export interface SearchResponseMetadata {
     total_count: number;
     limit: number;
     offset: number;
 }
 
-export type SlackChannelNumMembers = number | null;
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
 
-/**
- * Channel information from Slack.
- */
-export interface SlackChannel {
-    id: string;
-    name: string;
-    is_private?: boolean;
-    num_members?: SlackChannelNumMembers;
-}
-
-export type TagIcon = string | null;
-
-export type TagSlackChannelId = string | null;
-
-export type TagSlackChannelName = string | null;
-
-/**
- * Pydantic model for tags.
- */
-export interface Tag {
-    id: number;
-    created_at: string;
-    updated_at: string;
-    name: string;
-    icon?: TagIcon;
-    created_by: number;
-    members?: AppBlueprintsTagTagMember[];
-    slack_channel_id?: TagSlackChannelId;
-    slack_channel_name?: TagSlackChannelName;
-}
-
-export type TagCreateRequestIcon = string | null;
-
-export type TagCreateRequestCreatedBy = number | null;
-
-export type TagCreateRequestColor = string | null;
-
-export interface TagCreateRequest {
-    name: string;
-    icon?: TagCreateRequestIcon;
-    created_by?: TagCreateRequestCreatedBy;
-    color?: TagCreateRequestColor;
-}
-
-export type TagUpdateRequestName = string | null;
-
-export type TagUpdateRequestIcon = string | null;
-
-export type TagUpdateRequestSlackChannelId = string | null;
-
-export type TagUpdateRequestSlackChannelName = string | null;
-
-export interface TagUpdateRequest {
-    id: number;
-    name?: TagUpdateRequestName;
-    icon?: TagUpdateRequestIcon;
-    slack_channel_id?: TagUpdateRequestSlackChannelId;
-    slack_channel_name?: TagUpdateRequestSlackChannelName;
-}
-
-export type TodoDescription = string | null;
-
-export type TodoDueAt = string | null;
-
-export type TodoNotificationTimingOverride = string[] | null;
-
-export type TodoRecurrenceRule = string | null;
-
-export type TodoRecurrenceStart = string | null;
-
-export type TodoRecurrenceEnd = string | null;
-
-export type TodoRecurrenceType = 'fixed_schedule' | 'from_completion' | null;
-
-export interface Todo {
-    id: number;
-    created_at: string;
-    updated_at: string;
-    user_id: number;
-    title: string;
-    description?: TodoDescription;
-    completed: boolean;
-    due_at?: TodoDueAt;
-    due_notification_sent?: boolean;
-    slack_notification?: boolean;
-    notification_timing_override?: TodoNotificationTimingOverride;
-    recurrence_rule?: TodoRecurrenceRule;
-    recurrence_start?: TodoRecurrenceStart;
-    recurrence_end?: TodoRecurrenceEnd;
-    recurrence_type?: TodoRecurrenceType;
-    tags?: TodoTag[];
-}
-
-export type TodoCreateRequestUserId = number | null;
-
-export type TodoCreateRequestDescription = string | null;
-
-export type TodoCreateRequestDueAt = string | null;
-
-export type TodoCreateRequestNotificationTimingOverride = string[] | null;
-
-export type TodoCreateRequestRecurrenceRule = string | null;
-
-export type TodoCreateRequestRecurrenceStart = string | null;
-
-export type TodoCreateRequestRecurrenceEnd = string | null;
-
-export type TodoCreateRequestRecurrenceType = 'fixed_schedule' | 'from_completion' | null;
-
-export interface TodoCreateRequest {
-    user_id?: TodoCreateRequestUserId;
-    title: string;
-    description?: TodoCreateRequestDescription;
-    due_at?: TodoCreateRequestDueAt;
-    slack_notification?: boolean;
-    notification_timing_override?: TodoCreateRequestNotificationTimingOverride;
-    recurrence_rule?: TodoCreateRequestRecurrenceRule;
-    recurrence_start?: TodoCreateRequestRecurrenceStart;
-    recurrence_end?: TodoCreateRequestRecurrenceEnd;
-    recurrence_type?: TodoCreateRequestRecurrenceType;
-    tag_ids?: number[];
-}
-
-export type TodoTagIcon = string | null;
-
-/**
- * Lightweight tag representation for todo responses (without members).
- */
-export interface TodoTag {
-    id: number;
-    created_at: string;
-    updated_at: string;
-    name: string;
-    icon?: TodoTagIcon;
-    created_by: number;
-}
-
-export type TodoUpdateRequestCompleted = boolean | null;
-
-export type TodoUpdateRequestTitle = string | null;
-
-export type TodoUpdateRequestDescription = string | null;
-
-export type TodoUpdateRequestDueNotificationSent = boolean | null;
-
-export type TodoUpdateRequestDueAt = string | null;
-
-export type TodoUpdateRequestSlackNotification = boolean | null;
-
-export type TodoUpdateRequestNotificationTimingOverride = string[] | null;
-
-export type TodoUpdateRequestRecurrenceRule = string | null;
-
-export type TodoUpdateRequestRecurrenceStart = string | null;
-
-export type TodoUpdateRequestRecurrenceEnd = string | null;
-
-export type TodoUpdateRequestRecurrenceType = 'fixed_schedule' | 'from_completion' | null;
-
-export type TodoUpdateRequestTagIds = number[] | null;
-
-export interface TodoUpdateRequest {
-    id: number;
-    completed?: TodoUpdateRequestCompleted;
-    title?: TodoUpdateRequestTitle;
-    description?: TodoUpdateRequestDescription;
-    due_notification_sent?: TodoUpdateRequestDueNotificationSent;
-    due_at?: TodoUpdateRequestDueAt;
-    slack_notification?: TodoUpdateRequestSlackNotification;
-    notification_timing_override?: TodoUpdateRequestNotificationTimingOverride;
-    recurrence_rule?: TodoUpdateRequestRecurrenceRule;
-    recurrence_start?: TodoUpdateRequestRecurrenceStart;
-    recurrence_end?: TodoUpdateRequestRecurrenceEnd;
-    recurrence_type?: TodoUpdateRequestRecurrenceType;
-    tag_ids?: TodoUpdateRequestTagIds;
-}
-
-export type ToolsResponseToolsItem = { [key: string]: unknown };
-
-/**
- * Response listing available tools.
- */
-export interface ToolsResponse {
-    tools: ToolsResponseToolsItem[];
-}
-
-export type UpdateNotificationPreferencesRequestNotificationTiming = string[] | null;
-
-export type UpdateNotificationPreferencesRequestNotificationCustomMinutes = number | null;
-
-/**
- * Request to update notification preferences.
- */
-export interface UpdateNotificationPreferencesRequest {
-    notification_timing?: UpdateNotificationPreferencesRequestNotificationTiming;
-    notification_custom_minutes?: UpdateNotificationPreferencesRequestNotificationCustomMinutes;
-}
-
-export type UpdatePreferencesRequestColor = string | null;
-
-export interface UpdatePreferencesRequest {
-    color?: UpdatePreferencesRequestColor;
-}
-
-export type UserNotificationTiming = string[] | null;
-
-export type UserNotificationCustomMinutes = number | null;
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SortOrder = {
+    asc: 'asc',
+    desc: 'desc',
+} as const;
 
 export interface User {
     id: number;
@@ -336,8 +412,8 @@ export interface User {
     updated_at: string;
     email_address: string;
     name: string;
-    notification_timing?: UserNotificationTiming;
-    notification_custom_minutes?: UserNotificationCustomMinutes;
+    role?: string;
+    access_level?: string;
 }
 
 export type ValidationErrorLocItem = string | number;
@@ -348,1092 +424,66 @@ export interface ValidationError {
     type: string;
 }
 
-export type AppBlueprintsTagTagMemberRole =
-    (typeof AppBlueprintsTagTagMemberRole)[keyof typeof AppBlueprintsTagTagMemberRole];
+export type VideoFps = number | null;
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const AppBlueprintsTagTagMemberRole = {
-    creator: 'creator',
-    member: 'member',
-} as const;
+export type VideoHeight = number | null;
 
-export type AppBlueprintsTagTagMemberColor = string | null;
+export type VideoWidth = number | null;
 
-/**
- * Pydantic model for tag membership.
- */
-export interface AppBlueprintsTagTagMember {
+export type VideoSource = string | null;
+
+export type VideoLanguage = string | null;
+
+export interface Video {
     id: number;
     created_at: string;
     updated_at: string;
-    tag_id: number;
-    user_id: number;
-    role: AppBlueprintsTagTagMemberRole;
-    color?: AppBlueprintsTagTagMemberColor;
+    delivery_id: string;
+    uri: string;
+    fps?: VideoFps;
+    height?: VideoHeight;
+    width?: VideoWidth;
+    source?: VideoSource;
+    language?: VideoLanguage;
 }
 
-export type SearchSlackChannelsParams = {
-    q: string;
-};
+export type VideoCreateRequestFps = number | null;
 
-/**
- * @summary Get Todos
- */
-export const getTodos = (signal?: AbortSignal) => {
-    return customAxios<unknown>({ url: `/api/gateway/todo/`, method: 'GET', signal });
-};
+export type VideoCreateRequestHeight = number | null;
 
-export const getGetTodosQueryKey = () => {
-    return [`/api/gateway/todo/`] as const;
-};
+export type VideoCreateRequestWidth = number | null;
 
-export const getGetTodosQueryOptions = <
-    TData = Awaited<ReturnType<typeof getTodos>>,
-    TError = unknown,
->(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
-}) => {
-    const { query: queryOptions } = options ?? {};
+export type VideoCreateRequestSource = string | null;
 
-    const queryKey = queryOptions?.queryKey ?? getGetTodosQueryKey();
+export type VideoCreateRequestLanguage = string | null;
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTodos>>> = ({ signal }) =>
-        getTodos(signal);
+export interface VideoCreateRequest {
+    delivery_id: string;
+    uri: string;
+    fps?: VideoCreateRequestFps;
+    height?: VideoCreateRequestHeight;
+    width?: VideoCreateRequestWidth;
+    source?: VideoCreateRequestSource;
+    language?: VideoCreateRequestLanguage;
+}
 
-    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getTodos>>,
-        TError,
-        TData
-    > & { queryKey: DataTag<QueryKey, TData> };
-};
+export type VideoQueryDeliveryId = string | null;
 
-export type GetTodosQueryResult = NonNullable<Awaited<ReturnType<typeof getTodos>>>;
-export type GetTodosQueryError = unknown;
+export type VideoQuerySource = string | null;
 
-export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = unknown>(
-    options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>> &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTodos>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTodos>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>> &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTodos>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTodos>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Get Todos
- */
+export type VideoQueryLanguage = string | null;
 
-export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetTodosQueryOptions(options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-
-    query.queryKey = queryOptions.queryKey;
-
-    return query;
+export interface VideoQuery {
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: SortOrder;
+    delivery_id?: VideoQueryDeliveryId;
+    source?: VideoQuerySource;
+    language?: VideoQueryLanguage;
 }
 
 /**
- * @summary Create Todo
- */
-export const createTodo = (todoCreateRequest: TodoCreateRequest, signal?: AbortSignal) => {
-    return customAxios<Todo>({
-        url: `/api/gateway/todo/`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: todoCreateRequest,
-        signal,
-    });
-};
-
-export const getCreateTodoMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof createTodo>>,
-        TError,
-        { data: TodoCreateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof createTodo>>,
-    TError,
-    { data: TodoCreateRequest },
-    TContext
-> => {
-    const mutationKey = ['createTodo'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof createTodo>>,
-        { data: TodoCreateRequest }
-    > = (props) => {
-        const { data } = props ?? {};
-
-        return createTodo(data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type CreateTodoMutationResult = NonNullable<Awaited<ReturnType<typeof createTodo>>>;
-export type CreateTodoMutationBody = TodoCreateRequest;
-export type CreateTodoMutationError = HTTPValidationError;
-
-/**
- * @summary Create Todo
- */
-export const useCreateTodo = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof createTodo>>,
-            TError,
-            { data: TodoCreateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof createTodo>>,
-    TError,
-    { data: TodoCreateRequest },
-    TContext
-> => {
-    const mutationOptions = getCreateTodoMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Update Todo
- */
-export const updateTodo = (todoId: number, todoUpdateRequest: TodoUpdateRequest) => {
-    return customAxios<Todo>({
-        url: `/api/gateway/todo/${todoId}`,
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        data: todoUpdateRequest,
-    });
-};
-
-export const getUpdateTodoMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof updateTodo>>,
-        TError,
-        { todoId: number; data: TodoUpdateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof updateTodo>>,
-    TError,
-    { todoId: number; data: TodoUpdateRequest },
-    TContext
-> => {
-    const mutationKey = ['updateTodo'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof updateTodo>>,
-        { todoId: number; data: TodoUpdateRequest }
-    > = (props) => {
-        const { todoId, data } = props ?? {};
-
-        return updateTodo(todoId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateTodoMutationResult = NonNullable<Awaited<ReturnType<typeof updateTodo>>>;
-export type UpdateTodoMutationBody = TodoUpdateRequest;
-export type UpdateTodoMutationError = HTTPValidationError;
-
-/**
- * @summary Update Todo
- */
-export const useUpdateTodo = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof updateTodo>>,
-            TError,
-            { todoId: number; data: TodoUpdateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof updateTodo>>,
-    TError,
-    { todoId: number; data: TodoUpdateRequest },
-    TContext
-> => {
-    const mutationOptions = getUpdateTodoMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Delete Todo
- */
-export const deleteTodo = (todoId: number) => {
-    return customAxios<Todo>({ url: `/api/gateway/todo/${todoId}`, method: 'DELETE' });
-};
-
-export const getDeleteTodoMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof deleteTodo>>,
-        TError,
-        { todoId: number },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof deleteTodo>>,
-    TError,
-    { todoId: number },
-    TContext
-> => {
-    const mutationKey = ['deleteTodo'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof deleteTodo>>,
-        { todoId: number }
-    > = (props) => {
-        const { todoId } = props ?? {};
-
-        return deleteTodo(todoId);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type DeleteTodoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTodo>>>;
-
-export type DeleteTodoMutationError = HTTPValidationError;
-
-/**
- * @summary Delete Todo
- */
-export const useDeleteTodo = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof deleteTodo>>,
-            TError,
-            { todoId: number },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof deleteTodo>>,
-    TError,
-    { todoId: number },
-    TContext
-> => {
-    const mutationOptions = getDeleteTodoMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Get all tags the user has access to.
- * @summary Get Tags
- */
-export const getTags = (signal?: AbortSignal) => {
-    return customAxios<BaseEntitySearchResponseTag>({
-        url: `/api/gateway/tag/`,
-        method: 'GET',
-        signal,
-    });
-};
-
-export const getGetTagsQueryKey = () => {
-    return [`/api/gateway/tag/`] as const;
-};
-
-export const getGetTagsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getTags>>,
-    TError = unknown,
->(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTags>>, TError, TData>>;
-}) => {
-    const { query: queryOptions } = options ?? {};
-
-    const queryKey = queryOptions?.queryKey ?? getGetTagsQueryKey();
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTags>>> = ({ signal }) =>
-        getTags(signal);
-
-    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getTags>>,
-        TError,
-        TData
-    > & { queryKey: DataTag<QueryKey, TData> };
-};
-
-export type GetTagsQueryResult = NonNullable<Awaited<ReturnType<typeof getTags>>>;
-export type GetTagsQueryError = unknown;
-
-export function useGetTags<TData = Awaited<ReturnType<typeof getTags>>, TError = unknown>(
-    options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTags>>, TError, TData>> &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTags>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTags>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTags<TData = Awaited<ReturnType<typeof getTags>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTags>>, TError, TData>> &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTags>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTags>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTags<TData = Awaited<ReturnType<typeof getTags>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTags>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Get Tags
- */
-
-export function useGetTags<TData = Awaited<ReturnType<typeof getTags>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTags>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetTagsQueryOptions(options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-
-    query.queryKey = queryOptions.queryKey;
-
-    return query;
-}
-
-/**
- * Create a new tag. Creator automatically becomes a member with 'creator' role.
- * @summary Create Tag
- */
-export const createTag = (tagCreateRequest: TagCreateRequest, signal?: AbortSignal) => {
-    return customAxios<Tag>({
-        url: `/api/gateway/tag/`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: tagCreateRequest,
-        signal,
-    });
-};
-
-export const getCreateTagMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof createTag>>,
-        TError,
-        { data: TagCreateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof createTag>>,
-    TError,
-    { data: TagCreateRequest },
-    TContext
-> => {
-    const mutationKey = ['createTag'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof createTag>>,
-        { data: TagCreateRequest }
-    > = (props) => {
-        const { data } = props ?? {};
-
-        return createTag(data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type CreateTagMutationResult = NonNullable<Awaited<ReturnType<typeof createTag>>>;
-export type CreateTagMutationBody = TagCreateRequest;
-export type CreateTagMutationError = HTTPValidationError;
-
-/**
- * @summary Create Tag
- */
-export const useCreateTag = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof createTag>>,
-            TError,
-            { data: TagCreateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof createTag>>,
-    TError,
-    { data: TagCreateRequest },
-    TContext
-> => {
-    const mutationOptions = getCreateTagMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Get a specific tag (must be a member).
- * @summary Get Tag
- */
-export const getTag = (tagId: number, signal?: AbortSignal) => {
-    return customAxios<Tag>({ url: `/api/gateway/tag/${tagId}`, method: 'GET', signal });
-};
-
-export const getGetTagQueryKey = (tagId?: number) => {
-    return [`/api/gateway/tag/${tagId}`] as const;
-};
-
-export const getGetTagQueryOptions = <
-    TData = Awaited<ReturnType<typeof getTag>>,
-    TError = HTTPValidationError,
->(
-    tagId: number,
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTag>>, TError, TData>>;
-    }
-) => {
-    const { query: queryOptions } = options ?? {};
-
-    const queryKey = queryOptions?.queryKey ?? getGetTagQueryKey(tagId);
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTag>>> = ({ signal }) =>
-        getTag(tagId, signal);
-
-    return { queryKey, queryFn, enabled: !!tagId, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getTag>>,
-        TError,
-        TData
-    > & { queryKey: DataTag<QueryKey, TData> };
-};
-
-export type GetTagQueryResult = NonNullable<Awaited<ReturnType<typeof getTag>>>;
-export type GetTagQueryError = HTTPValidationError;
-
-export function useGetTag<TData = Awaited<ReturnType<typeof getTag>>, TError = HTTPValidationError>(
-    tagId: number,
-    options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTag>>, TError, TData>> &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTag>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTag>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTag<TData = Awaited<ReturnType<typeof getTag>>, TError = HTTPValidationError>(
-    tagId: number,
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTag>>, TError, TData>> &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getTag>>,
-                    TError,
-                    Awaited<ReturnType<typeof getTag>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetTag<TData = Awaited<ReturnType<typeof getTag>>, TError = HTTPValidationError>(
-    tagId: number,
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTag>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Get Tag
- */
-
-export function useGetTag<TData = Awaited<ReturnType<typeof getTag>>, TError = HTTPValidationError>(
-    tagId: number,
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTag>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetTagQueryOptions(tagId, options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-
-    query.queryKey = queryOptions.queryKey;
-
-    return query;
-}
-
-/**
- * Update tag properties (name, icon). Only creator can update.
- * @summary Update Tag
- */
-export const updateTag = (tagId: number, tagUpdateRequest: TagUpdateRequest) => {
-    return customAxios<Tag>({
-        url: `/api/gateway/tag/${tagId}`,
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        data: tagUpdateRequest,
-    });
-};
-
-export const getUpdateTagMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof updateTag>>,
-        TError,
-        { tagId: number; data: TagUpdateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof updateTag>>,
-    TError,
-    { tagId: number; data: TagUpdateRequest },
-    TContext
-> => {
-    const mutationKey = ['updateTag'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof updateTag>>,
-        { tagId: number; data: TagUpdateRequest }
-    > = (props) => {
-        const { tagId, data } = props ?? {};
-
-        return updateTag(tagId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateTagMutationResult = NonNullable<Awaited<ReturnType<typeof updateTag>>>;
-export type UpdateTagMutationBody = TagUpdateRequest;
-export type UpdateTagMutationError = HTTPValidationError;
-
-/**
- * @summary Update Tag
- */
-export const useUpdateTag = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof updateTag>>,
-            TError,
-            { tagId: number; data: TagUpdateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof updateTag>>,
-    TError,
-    { tagId: number; data: TagUpdateRequest },
-    TContext
-> => {
-    const mutationOptions = getUpdateTagMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Delete a tag. Only creator can delete.
- * @summary Delete Tag
- */
-export const deleteTag = (tagId: number) => {
-    return customAxios<Tag>({ url: `/api/gateway/tag/${tagId}`, method: 'DELETE' });
-};
-
-export const getDeleteTagMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof deleteTag>>,
-        TError,
-        { tagId: number },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof deleteTag>>,
-    TError,
-    { tagId: number },
-    TContext
-> => {
-    const mutationKey = ['deleteTag'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTag>>, { tagId: number }> = (
-        props
-    ) => {
-        const { tagId } = props ?? {};
-
-        return deleteTag(tagId);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type DeleteTagMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTag>>>;
-
-export type DeleteTagMutationError = HTTPValidationError;
-
-/**
- * @summary Delete Tag
- */
-export const useDeleteTag = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof deleteTag>>,
-            TError,
-            { tagId: number },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof deleteTag>>,
-    TError,
-    { tagId: number },
-    TContext
-> => {
-    const mutationOptions = getDeleteTagMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Share tag with another user. Only existing members can share.
- * @summary Add Tag Member
- */
-export const addTagMember = (
-    tagId: number,
-    addMemberRequest: AddMemberRequest,
-    signal?: AbortSignal
-) => {
-    return customAxios<AppBlueprintsTagTagMember>({
-        url: `/api/gateway/tag/${tagId}/members`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: addMemberRequest,
-        signal,
-    });
-};
-
-export const getAddTagMemberMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof addTagMember>>,
-        TError,
-        { tagId: number; data: AddMemberRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof addTagMember>>,
-    TError,
-    { tagId: number; data: AddMemberRequest },
-    TContext
-> => {
-    const mutationKey = ['addTagMember'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof addTagMember>>,
-        { tagId: number; data: AddMemberRequest }
-    > = (props) => {
-        const { tagId, data } = props ?? {};
-
-        return addTagMember(tagId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type AddTagMemberMutationResult = NonNullable<Awaited<ReturnType<typeof addTagMember>>>;
-export type AddTagMemberMutationBody = AddMemberRequest;
-export type AddTagMemberMutationError = HTTPValidationError;
-
-/**
- * @summary Add Tag Member
- */
-export const useAddTagMember = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof addTagMember>>,
-            TError,
-            { tagId: number; data: AddMemberRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof addTagMember>>,
-    TError,
-    { tagId: number; data: AddMemberRequest },
-    TContext
-> => {
-    const mutationOptions = getAddTagMemberMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Remove a member from a tag. Creator can remove anyone; members can only leave.
- * @summary Remove Tag Member
- */
-export const removeTagMember = (tagId: number, targetUserId: number) => {
-    return customAxios<unknown>({
-        url: `/api/gateway/tag/${tagId}/members/${targetUserId}`,
-        method: 'DELETE',
-    });
-};
-
-export const getRemoveTagMemberMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof removeTagMember>>,
-        TError,
-        { tagId: number; targetUserId: number },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof removeTagMember>>,
-    TError,
-    { tagId: number; targetUserId: number },
-    TContext
-> => {
-    const mutationKey = ['removeTagMember'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof removeTagMember>>,
-        { tagId: number; targetUserId: number }
-    > = (props) => {
-        const { tagId, targetUserId } = props ?? {};
-
-        return removeTagMember(tagId, targetUserId);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type RemoveTagMemberMutationResult = NonNullable<
-    Awaited<ReturnType<typeof removeTagMember>>
->;
-
-export type RemoveTagMemberMutationError = HTTPValidationError;
-
-/**
- * @summary Remove Tag Member
- */
-export const useRemoveTagMember = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof removeTagMember>>,
-            TError,
-            { tagId: number; targetUserId: number },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof removeTagMember>>,
-    TError,
-    { tagId: number; targetUserId: number },
-    TContext
-> => {
-    const mutationOptions = getRemoveTagMemberMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Update personal preferences for a tag (color).
- * @summary Update My Tag Preferences
- */
-export const updateMyTagPreferences = (
-    tagId: number,
-    updatePreferencesRequest: UpdatePreferencesRequest
-) => {
-    return customAxios<AppBlueprintsTagTagMember>({
-        url: `/api/gateway/tag/${tagId}/my-preferences`,
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        data: updatePreferencesRequest,
-    });
-};
-
-export const getUpdateMyTagPreferencesMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof updateMyTagPreferences>>,
-        TError,
-        { tagId: number; data: UpdatePreferencesRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof updateMyTagPreferences>>,
-    TError,
-    { tagId: number; data: UpdatePreferencesRequest },
-    TContext
-> => {
-    const mutationKey = ['updateMyTagPreferences'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof updateMyTagPreferences>>,
-        { tagId: number; data: UpdatePreferencesRequest }
-    > = (props) => {
-        const { tagId, data } = props ?? {};
-
-        return updateMyTagPreferences(tagId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateMyTagPreferencesMutationResult = NonNullable<
-    Awaited<ReturnType<typeof updateMyTagPreferences>>
->;
-export type UpdateMyTagPreferencesMutationBody = UpdatePreferencesRequest;
-export type UpdateMyTagPreferencesMutationError = HTTPValidationError;
-
-/**
- * @summary Update My Tag Preferences
- */
-export const useUpdateMyTagPreferences = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof updateMyTagPreferences>>,
-            TError,
-            { tagId: number; data: UpdatePreferencesRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof updateMyTagPreferences>>,
-    TError,
-    { tagId: number; data: UpdatePreferencesRequest },
-    TContext
-> => {
-    const mutationOptions = getUpdateMyTagPreferencesMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Get all users for tag sharing UI. Temporary - needs pagination/search.
- * @summary Get All Users
- */
-export const getAllUsers = (signal?: AbortSignal) => {
-    return customAxios<BaseEntitySearchResponseUser>({
-        url: `/api/gateway/tag/users/all`,
-        method: 'GET',
-        signal,
-    });
-};
-
-export const getGetAllUsersQueryKey = () => {
-    return [`/api/gateway/tag/users/all`] as const;
-};
-
-export const getGetAllUsersQueryOptions = <
-    TData = Awaited<ReturnType<typeof getAllUsers>>,
-    TError = unknown,
->(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>>;
-}) => {
-    const { query: queryOptions } = options ?? {};
-
-    const queryKey = queryOptions?.queryKey ?? getGetAllUsersQueryKey();
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllUsers>>> = ({ signal }) =>
-        getAllUsers(signal);
-
-    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getAllUsers>>,
-        TError,
-        TData
-    > & { queryKey: DataTag<QueryKey, TData> };
-};
-
-export type GetAllUsersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllUsers>>>;
-export type GetAllUsersQueryError = unknown;
-
-export function useGetAllUsers<TData = Awaited<ReturnType<typeof getAllUsers>>, TError = unknown>(
-    options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>> &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getAllUsers>>,
-                    TError,
-                    Awaited<ReturnType<typeof getAllUsers>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetAllUsers<TData = Awaited<ReturnType<typeof getAllUsers>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>> &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getAllUsers>>,
-                    TError,
-                    Awaited<ReturnType<typeof getAllUsers>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetAllUsers<TData = Awaited<ReturnType<typeof getAllUsers>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Get All Users
- */
-
-export function useGetAllUsers<TData = Awaited<ReturnType<typeof getAllUsers>>, TError = unknown>(
-    options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>>;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetAllUsersQueryOptions(options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-
-    query.queryKey = queryOptions.queryKey;
-
-    return query;
-}
-
-/**
- * Get the current authenticated user.
  * @summary Get Me
  */
 export const getMe = (signal?: AbortSignal) => {
@@ -1522,11 +572,6 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = unk
 }
 
 /**
- * Refresh the current user's access token.
-
-Validates the existing token via UserDependency, generates a new token,
-and sets it as an HTTP-only cookie. Use this to extend sessions or
-verify authentication status on app load.
  * @summary Refresh Token
  */
 export const refreshToken = (signal?: AbortSignal) => {
@@ -1574,114 +619,110 @@ export const useRefreshToken = <TError = unknown, TContext = unknown>(
 };
 
 /**
- * Get the current user's notification preferences.
- * @summary Get Notification Preferences
+ * @summary Search Datasets
  */
-export const getNotificationPreferences = (signal?: AbortSignal) => {
-    return customAxios<NotificationPreferences>({
-        url: `/api/gateway/user/me/notification-preferences`,
+export const searchDatasets = (datasetQuery: DatasetQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDataset>({
+        url: `/api/gateway/dataset`,
         method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         signal,
     });
 };
 
-export const getGetNotificationPreferencesQueryKey = () => {
-    return [`/api/gateway/user/me/notification-preferences`] as const;
+export const getSearchDatasetsQueryKey = (datasetQuery?: DatasetQuery) => {
+    return [`/api/gateway/dataset`, datasetQuery] as const;
 };
 
-export const getGetNotificationPreferencesQueryOptions = <
-    TData = Awaited<ReturnType<typeof getNotificationPreferences>>,
-    TError = unknown,
->(options?: {
-    query?: Partial<
-        UseQueryOptions<Awaited<ReturnType<typeof getNotificationPreferences>>, TError, TData>
-    >;
-}) => {
+export const getSearchDatasetsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDatasets>>,
+    TError = HTTPValidationError,
+>(
+    datasetQuery: DatasetQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
+    }
+) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetNotificationPreferencesQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getSearchDatasetsQueryKey(datasetQuery);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotificationPreferences>>> = ({
-        signal,
-    }) => getNotificationPreferences(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDatasets>>> = ({ signal }) =>
+        searchDatasets(datasetQuery, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getNotificationPreferences>>,
+        Awaited<ReturnType<typeof searchDatasets>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData> };
 };
 
-export type GetNotificationPreferencesQueryResult = NonNullable<
-    Awaited<ReturnType<typeof getNotificationPreferences>>
->;
-export type GetNotificationPreferencesQueryError = unknown;
+export type SearchDatasetsQueryResult = NonNullable<Awaited<ReturnType<typeof searchDatasets>>>;
+export type SearchDatasetsQueryError = HTTPValidationError;
 
-export function useGetNotificationPreferences<
-    TData = Awaited<ReturnType<typeof getNotificationPreferences>>,
-    TError = unknown,
+export function useSearchDatasets<
+    TData = Awaited<ReturnType<typeof searchDatasets>>,
+    TError = HTTPValidationError,
 >(
+    datasetQuery: DatasetQuery,
     options: {
-        query: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getNotificationPreferences>>, TError, TData>
-        > &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getNotificationPreferences>>,
+                    Awaited<ReturnType<typeof searchDatasets>>,
                     TError,
-                    Awaited<ReturnType<typeof getNotificationPreferences>>
+                    Awaited<ReturnType<typeof searchDatasets>>
                 >,
                 'initialData'
             >;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetNotificationPreferences<
-    TData = Awaited<ReturnType<typeof getNotificationPreferences>>,
-    TError = unknown,
+export function useSearchDatasets<
+    TData = Awaited<ReturnType<typeof searchDatasets>>,
+    TError = HTTPValidationError,
 >(
+    datasetQuery: DatasetQuery,
     options?: {
         query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getNotificationPreferences>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>
         > &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getNotificationPreferences>>,
+                    Awaited<ReturnType<typeof searchDatasets>>,
                     TError,
-                    Awaited<ReturnType<typeof getNotificationPreferences>>
+                    Awaited<ReturnType<typeof searchDatasets>>
                 >,
                 'initialData'
             >;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetNotificationPreferences<
-    TData = Awaited<ReturnType<typeof getNotificationPreferences>>,
-    TError = unknown,
+export function useSearchDatasets<
+    TData = Awaited<ReturnType<typeof searchDatasets>>,
+    TError = HTTPValidationError,
 >(
+    datasetQuery: DatasetQuery,
     options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getNotificationPreferences>>, TError, TData>
-        >;
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
 /**
- * @summary Get Notification Preferences
+ * @summary Search Datasets
  */
 
-export function useGetNotificationPreferences<
-    TData = Awaited<ReturnType<typeof getNotificationPreferences>>,
-    TError = unknown,
+export function useSearchDatasets<
+    TData = Awaited<ReturnType<typeof searchDatasets>>,
+    TError = HTTPValidationError,
 >(
+    datasetQuery: DatasetQuery,
     options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getNotificationPreferences>>, TError, TData>
-        >;
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetNotificationPreferencesQueryOptions(options);
+    const queryOptions = getSearchDatasetsQueryOptions(datasetQuery, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -1693,37 +734,35 @@ export function useGetNotificationPreferences<
 }
 
 /**
- * Update the current user's notification preferences.
- * @summary Update Notification Preferences
+ * @summary Create Dataset
  */
-export const updateNotificationPreferences = (
-    updateNotificationPreferencesRequest: UpdateNotificationPreferencesRequest
-) => {
-    return customAxios<NotificationPreferences>({
-        url: `/api/gateway/user/me/notification-preferences`,
-        method: 'PATCH',
+export const createDataset = (datasetCreateRequest: DatasetCreateRequest, signal?: AbortSignal) => {
+    return customAxios<Dataset>({
+        url: `/api/gateway/dataset`,
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        data: updateNotificationPreferencesRequest,
+        data: datasetCreateRequest,
+        signal,
     });
 };
 
-export const getUpdateNotificationPreferencesMutationOptions = <
+export const getCreateDatasetMutationOptions = <
     TError = HTTPValidationError,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof updateNotificationPreferences>>,
+        Awaited<ReturnType<typeof createDataset>>,
         TError,
-        { data: UpdateNotificationPreferencesRequest },
+        { data: DatasetCreateRequest },
         TContext
     >;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof updateNotificationPreferences>>,
+    Awaited<ReturnType<typeof createDataset>>,
     TError,
-    { data: UpdateNotificationPreferencesRequest },
+    { data: DatasetCreateRequest },
     TContext
 > => {
-    const mutationKey = ['updateNotificationPreferences'];
+    const mutationKey = ['createDataset'];
     const { mutation: mutationOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
@@ -1731,360 +770,417 @@ export const getUpdateNotificationPreferencesMutationOptions = <
         : { mutation: { mutationKey } };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof updateNotificationPreferences>>,
-        { data: UpdateNotificationPreferencesRequest }
+        Awaited<ReturnType<typeof createDataset>>,
+        { data: DatasetCreateRequest }
     > = (props) => {
         const { data } = props ?? {};
 
-        return updateNotificationPreferences(data);
+        return createDataset(data);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type UpdateNotificationPreferencesMutationResult = NonNullable<
-    Awaited<ReturnType<typeof updateNotificationPreferences>>
->;
-export type UpdateNotificationPreferencesMutationBody = UpdateNotificationPreferencesRequest;
-export type UpdateNotificationPreferencesMutationError = HTTPValidationError;
+export type CreateDatasetMutationResult = NonNullable<Awaited<ReturnType<typeof createDataset>>>;
+export type CreateDatasetMutationBody = DatasetCreateRequest;
+export type CreateDatasetMutationError = HTTPValidationError;
 
 /**
- * @summary Update Notification Preferences
+ * @summary Create Dataset
  */
-export const useUpdateNotificationPreferences = <TError = HTTPValidationError, TContext = unknown>(
+export const useCreateDataset = <TError = HTTPValidationError, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof updateNotificationPreferences>>,
+            Awaited<ReturnType<typeof createDataset>>,
             TError,
-            { data: UpdateNotificationPreferencesRequest },
+            { data: DatasetCreateRequest },
             TContext
         >;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof updateNotificationPreferences>>,
+    Awaited<ReturnType<typeof createDataset>>,
     TError,
-    { data: UpdateNotificationPreferencesRequest },
+    { data: DatasetCreateRequest },
     TContext
 > => {
-    const mutationOptions = getUpdateNotificationPreferencesMutationOptions(options);
+    const mutationOptions = getCreateDatasetMutationOptions(options);
 
     return useMutation(mutationOptions, queryClient);
 };
 
 /**
- * Send a message to the todo assistant.
-
-The assistant can help manage todos through natural language:
-- "Show me my todos"
-- "Create a todo to buy groceries due tomorrow"
-- "Mark todo 5 as complete"
-- "What's on my plate for this week?"
-
-When creating todos, the system automatically extracts:
-- Due dates from phrases like "tomorrow", "next Tuesday"
-- Recurrence patterns from phrases like "every week", "daily"
-- Relevant tags based on the todo content
- * @summary Chat
+ * @summary Get Dataset
  */
-export const chat = (chatRequest: ChatRequest, signal?: AbortSignal) => {
-    return customAxios<ChatResponse>({
-        url: `/api/gateway/chat/`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: chatRequest,
+export const getDataset = (datasetId: number, signal?: AbortSignal) => {
+    return customAxios<Dataset>({
+        url: `/api/gateway/dataset/${datasetId}`,
+        method: 'GET',
         signal,
     });
 };
 
-export const getChatMutationOptions = <TError = HTTPValidationError, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof chat>>,
+export const getGetDatasetQueryKey = (datasetId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}`] as const;
+};
+
+export const getGetDatasetQueryOptions = <
+    TData = Awaited<ReturnType<typeof getDataset>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDataset>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetDatasetQueryKey(datasetId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDataset>>> = ({ signal }) =>
+        getDataset(datasetId, signal);
+
+    return { queryKey, queryFn, enabled: !!datasetId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getDataset>>,
         TError,
-        { data: ChatRequest },
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type GetDatasetQueryResult = NonNullable<Awaited<ReturnType<typeof getDataset>>>;
+export type GetDatasetQueryError = HTTPValidationError;
+
+export function useGetDataset<
+    TData = Awaited<ReturnType<typeof getDataset>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDataset>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDataset>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDataset>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDataset<
+    TData = Awaited<ReturnType<typeof getDataset>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDataset>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDataset>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDataset>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDataset<
+    TData = Awaited<ReturnType<typeof getDataset>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDataset>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Dataset
+ */
+
+export function useGetDataset<
+    TData = Awaited<ReturnType<typeof getDataset>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDataset>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetDatasetQueryOptions(datasetId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Update Dataset
+ */
+export const updateDataset = (datasetId: number, datasetUpdateRequest: DatasetUpdateRequest) => {
+    return customAxios<Dataset>({
+        url: `/api/gateway/dataset/${datasetId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetUpdateRequest,
+    });
+};
+
+export const getUpdateDatasetMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateDataset>>,
+        TError,
+        { datasetId: number; data: DatasetUpdateRequest },
         TContext
     >;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof chat>>,
+    Awaited<ReturnType<typeof updateDataset>>,
     TError,
-    { data: ChatRequest },
+    { datasetId: number; data: DatasetUpdateRequest },
     TContext
 > => {
-    const mutationKey = ['chat'];
+    const mutationKey = ['updateDataset'];
     const { mutation: mutationOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
         : { mutation: { mutationKey } };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof chat>>, { data: ChatRequest }> = (
-        props
-    ) => {
-        const { data } = props ?? {};
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateDataset>>,
+        { datasetId: number; data: DatasetUpdateRequest }
+    > = (props) => {
+        const { datasetId, data } = props ?? {};
 
-        return chat(data);
+        return updateDataset(datasetId, data);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type ChatMutationResult = NonNullable<Awaited<ReturnType<typeof chat>>>;
-export type ChatMutationBody = ChatRequest;
-export type ChatMutationError = HTTPValidationError;
+export type UpdateDatasetMutationResult = NonNullable<Awaited<ReturnType<typeof updateDataset>>>;
+export type UpdateDatasetMutationBody = DatasetUpdateRequest;
+export type UpdateDatasetMutationError = HTTPValidationError;
 
 /**
- * @summary Chat
+ * @summary Update Dataset
  */
-export const useChat = <TError = HTTPValidationError, TContext = unknown>(
+export const useUpdateDataset = <TError = HTTPValidationError, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof chat>>,
+            Awaited<ReturnType<typeof updateDataset>>,
             TError,
-            { data: ChatRequest },
+            { datasetId: number; data: DatasetUpdateRequest },
             TContext
         >;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof chat>>, TError, { data: ChatRequest }, TContext> => {
-    const mutationOptions = getChatMutationOptions(options);
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateDataset>>,
+    TError,
+    { datasetId: number; data: DatasetUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateDatasetMutationOptions(options);
 
     return useMutation(mutationOptions, queryClient);
 };
 
 /**
- * Get list of available tools for the chat assistant.
- * @summary Get Available Tools
+ * @summary Delete Dataset
  */
-export const getAvailableTools = (signal?: AbortSignal) => {
-    return customAxios<ToolsResponse>({ url: `/api/gateway/chat/tools`, method: 'GET', signal });
+export const deleteDataset = (datasetId: number) => {
+    return customAxios<Dataset>({ url: `/api/gateway/dataset/${datasetId}`, method: 'DELETE' });
 };
 
-export const getGetAvailableToolsQueryKey = () => {
-    return [`/api/gateway/chat/tools`] as const;
-};
-
-export const getGetAvailableToolsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getAvailableTools>>,
-    TError = unknown,
+export const getDeleteDatasetMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailableTools>>, TError, TData>>;
-}) => {
-    const { query: queryOptions } = options ?? {};
-
-    const queryKey = queryOptions?.queryKey ?? getGetAvailableToolsQueryKey();
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailableTools>>> = ({ signal }) =>
-        getAvailableTools(signal);
-
-    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getAvailableTools>>,
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof deleteDataset>>,
         TError,
-        TData
-    > & { queryKey: DataTag<QueryKey, TData> };
-};
+        { datasetId: number },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDataset>>,
+    TError,
+    { datasetId: number },
+    TContext
+> => {
+    const mutationKey = ['deleteDataset'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
 
-export type GetAvailableToolsQueryResult = NonNullable<
-    Awaited<ReturnType<typeof getAvailableTools>>
->;
-export type GetAvailableToolsQueryError = unknown;
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof deleteDataset>>,
+        { datasetId: number }
+    > = (props) => {
+        const { datasetId } = props ?? {};
 
-export function useGetAvailableTools<
-    TData = Awaited<ReturnType<typeof getAvailableTools>>,
-    TError = unknown,
->(
-    options: {
-        query: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getAvailableTools>>, TError, TData>
-        > &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getAvailableTools>>,
-                    TError,
-                    Awaited<ReturnType<typeof getAvailableTools>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetAvailableTools<
-    TData = Awaited<ReturnType<typeof getAvailableTools>>,
-    TError = unknown,
->(
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getAvailableTools>>, TError, TData>
-        > &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getAvailableTools>>,
-                    TError,
-                    Awaited<ReturnType<typeof getAvailableTools>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useGetAvailableTools<
-    TData = Awaited<ReturnType<typeof getAvailableTools>>,
-    TError = unknown,
->(
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getAvailableTools>>, TError, TData>
-        >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Get Available Tools
- */
-
-export function useGetAvailableTools<
-    TData = Awaited<ReturnType<typeof getAvailableTools>>,
-    TError = unknown,
->(
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof getAvailableTools>>, TError, TData>
-        >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getGetAvailableToolsQueryOptions(options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
+        return deleteDataset(datasetId);
     };
 
-    query.queryKey = queryOptions.queryKey;
+    return { mutationFn, ...mutationOptions };
+};
 
-    return query;
-}
+export type DeleteDatasetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDataset>>>;
+
+export type DeleteDatasetMutationError = HTTPValidationError;
 
 /**
- * Search for Slack channels by name.
-
-Args:
-    q: Search query to match against channel names
-
-Returns:
-    List of matching Slack channels
- * @summary Search Slack Channels
+ * @summary Delete Dataset
  */
-export const searchSlackChannels = (params: SearchSlackChannelsParams, signal?: AbortSignal) => {
-    return customAxios<ChannelSearchResponse>({
-        url: `/api/gateway/slack/channels/search`,
+export const useDeleteDataset = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof deleteDataset>>,
+            TError,
+            { datasetId: number },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof deleteDataset>>,
+    TError,
+    { datasetId: number },
+    TContext
+> => {
+    const mutationOptions = getDeleteDatasetMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Dataset Versions
+ */
+export const searchDatasetVersions = (datasetId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDatasetVersion>({
+        url: `/api/gateway/dataset/${datasetId}/version`,
         method: 'GET',
-        params,
         signal,
     });
 };
 
-export const getSearchSlackChannelsQueryKey = (params?: SearchSlackChannelsParams) => {
-    return [`/api/gateway/slack/channels/search`, ...(params ? [params] : [])] as const;
+export const getSearchDatasetVersionsQueryKey = (datasetId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/version`] as const;
 };
 
-export const getSearchSlackChannelsQueryOptions = <
-    TData = Awaited<ReturnType<typeof searchSlackChannels>>,
+export const getSearchDatasetVersionsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDatasetVersions>>,
     TError = HTTPValidationError,
 >(
-    params: SearchSlackChannelsParams,
+    datasetId: number,
     options?: {
         query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchSlackChannels>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasetVersions>>, TError, TData>
         >;
     }
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchSlackChannelsQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getSearchDatasetVersionsQueryKey(datasetId);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchSlackChannels>>> = ({ signal }) =>
-        searchSlackChannels(params, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDatasetVersions>>> = ({
+        signal,
+    }) => searchDatasetVersions(datasetId, signal);
 
-    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof searchSlackChannels>>,
+    return { queryKey, queryFn, enabled: !!datasetId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchDatasetVersions>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData> };
 };
 
-export type SearchSlackChannelsQueryResult = NonNullable<
-    Awaited<ReturnType<typeof searchSlackChannels>>
+export type SearchDatasetVersionsQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchDatasetVersions>>
 >;
-export type SearchSlackChannelsQueryError = HTTPValidationError;
+export type SearchDatasetVersionsQueryError = HTTPValidationError;
 
-export function useSearchSlackChannels<
-    TData = Awaited<ReturnType<typeof searchSlackChannels>>,
+export function useSearchDatasetVersions<
+    TData = Awaited<ReturnType<typeof searchDatasetVersions>>,
     TError = HTTPValidationError,
 >(
-    params: SearchSlackChannelsParams,
+    datasetId: number,
     options: {
         query: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchSlackChannels>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasetVersions>>, TError, TData>
         > &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof searchSlackChannels>>,
+                    Awaited<ReturnType<typeof searchDatasetVersions>>,
                     TError,
-                    Awaited<ReturnType<typeof searchSlackChannels>>
+                    Awaited<ReturnType<typeof searchDatasetVersions>>
                 >,
                 'initialData'
             >;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useSearchSlackChannels<
-    TData = Awaited<ReturnType<typeof searchSlackChannels>>,
+export function useSearchDatasetVersions<
+    TData = Awaited<ReturnType<typeof searchDatasetVersions>>,
     TError = HTTPValidationError,
 >(
-    params: SearchSlackChannelsParams,
+    datasetId: number,
     options?: {
         query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchSlackChannels>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasetVersions>>, TError, TData>
         > &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof searchSlackChannels>>,
+                    Awaited<ReturnType<typeof searchDatasetVersions>>,
                     TError,
-                    Awaited<ReturnType<typeof searchSlackChannels>>
+                    Awaited<ReturnType<typeof searchDatasetVersions>>
                 >,
                 'initialData'
             >;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useSearchSlackChannels<
-    TData = Awaited<ReturnType<typeof searchSlackChannels>>,
+export function useSearchDatasetVersions<
+    TData = Awaited<ReturnType<typeof searchDatasetVersions>>,
     TError = HTTPValidationError,
 >(
-    params: SearchSlackChannelsParams,
+    datasetId: number,
     options?: {
         query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchSlackChannels>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasetVersions>>, TError, TData>
         >;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
 /**
- * @summary Search Slack Channels
+ * @summary Search Dataset Versions
  */
 
-export function useSearchSlackChannels<
-    TData = Awaited<ReturnType<typeof searchSlackChannels>>,
+export function useSearchDatasetVersions<
+    TData = Awaited<ReturnType<typeof searchDatasetVersions>>,
     TError = HTTPValidationError,
 >(
-    params: SearchSlackChannelsParams,
+    datasetId: number,
     options?: {
         query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchSlackChannels>>, TError, TData>
+            UseQueryOptions<Awaited<ReturnType<typeof searchDatasetVersions>>, TError, TData>
         >;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchSlackChannelsQueryOptions(params, options);
+    const queryOptions = getSearchDatasetVersionsQueryOptions(datasetId, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -2094,6 +1190,2147 @@ export function useSearchSlackChannels<
 
     return query;
 }
+
+/**
+ * @summary Create Dataset Version
+ */
+export const createDatasetVersion = (
+    datasetId: number,
+    datasetVersionCreateRequest: DatasetVersionCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DatasetVersion>({
+        url: `/api/gateway/dataset/${datasetId}/version`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetVersionCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateDatasetVersionMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createDatasetVersion>>,
+        TError,
+        { datasetId: number; data: DatasetVersionCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createDatasetVersion>>,
+    TError,
+    { datasetId: number; data: DatasetVersionCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createDatasetVersion'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createDatasetVersion>>,
+        { datasetId: number; data: DatasetVersionCreateRequest }
+    > = (props) => {
+        const { datasetId, data } = props ?? {};
+
+        return createDatasetVersion(datasetId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDatasetVersionMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createDatasetVersion>>
+>;
+export type CreateDatasetVersionMutationBody = DatasetVersionCreateRequest;
+export type CreateDatasetVersionMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Dataset Version
+ */
+export const useCreateDatasetVersion = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createDatasetVersion>>,
+            TError,
+            { datasetId: number; data: DatasetVersionCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createDatasetVersion>>,
+    TError,
+    { datasetId: number; data: DatasetVersionCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateDatasetVersionMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Get Dataset Version
+ */
+export const getDatasetVersion = (datasetId: number, versionId: number, signal?: AbortSignal) => {
+    return customAxios<DatasetVersion>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getGetDatasetVersionQueryKey = (datasetId?: number, versionId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/version/${versionId}`] as const;
+};
+
+export const getGetDatasetVersionQueryOptions = <
+    TData = Awaited<ReturnType<typeof getDatasetVersion>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetDatasetVersionQueryKey(datasetId, versionId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDatasetVersion>>> = ({ signal }) =>
+        getDatasetVersion(datasetId, versionId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && versionId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type GetDatasetVersionQueryResult = NonNullable<
+    Awaited<ReturnType<typeof getDatasetVersion>>
+>;
+export type GetDatasetVersionQueryError = HTTPValidationError;
+
+export function useGetDatasetVersion<
+    TData = Awaited<ReturnType<typeof getDatasetVersion>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDatasetVersion>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDatasetVersion>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDatasetVersion<
+    TData = Awaited<ReturnType<typeof getDatasetVersion>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDatasetVersion>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDatasetVersion>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDatasetVersion<
+    TData = Awaited<ReturnType<typeof getDatasetVersion>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Dataset Version
+ */
+
+export function useGetDatasetVersion<
+    TData = Awaited<ReturnType<typeof getDatasetVersion>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getDatasetVersion>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetDatasetVersionQueryOptions(datasetId, versionId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Search Videos
+ */
+export const searchVideos = (videoQuery: VideoQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseVideo>({
+        url: `/api/gateway/video`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getSearchVideosQueryKey = (videoQuery?: VideoQuery) => {
+    return [`/api/gateway/video`, videoQuery] as const;
+};
+
+export const getSearchVideosQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchVideos>>,
+    TError = HTTPValidationError,
+>(
+    videoQuery: VideoQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchVideosQueryKey(videoQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchVideos>>> = ({ signal }) =>
+        searchVideos(videoQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchVideos>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchVideosQueryResult = NonNullable<Awaited<ReturnType<typeof searchVideos>>>;
+export type SearchVideosQueryError = HTTPValidationError;
+
+export function useSearchVideos<
+    TData = Awaited<ReturnType<typeof searchVideos>>,
+    TError = HTTPValidationError,
+>(
+    videoQuery: VideoQuery,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchVideos>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchVideos>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchVideos<
+    TData = Awaited<ReturnType<typeof searchVideos>>,
+    TError = HTTPValidationError,
+>(
+    videoQuery: VideoQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchVideos>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchVideos>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchVideos<
+    TData = Awaited<ReturnType<typeof searchVideos>>,
+    TError = HTTPValidationError,
+>(
+    videoQuery: VideoQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Videos
+ */
+
+export function useSearchVideos<
+    TData = Awaited<ReturnType<typeof searchVideos>>,
+    TError = HTTPValidationError,
+>(
+    videoQuery: VideoQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchVideosQueryOptions(videoQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Video
+ */
+export const createVideo = (videoCreateRequest: VideoCreateRequest, signal?: AbortSignal) => {
+    return customAxios<Video>({
+        url: `/api/gateway/video`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: videoCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateVideoMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createVideo>>,
+        TError,
+        { data: VideoCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createVideo>>,
+    TError,
+    { data: VideoCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createVideo'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createVideo>>,
+        { data: VideoCreateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createVideo(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateVideoMutationResult = NonNullable<Awaited<ReturnType<typeof createVideo>>>;
+export type CreateVideoMutationBody = VideoCreateRequest;
+export type CreateVideoMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Video
+ */
+export const useCreateVideo = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createVideo>>,
+            TError,
+            { data: VideoCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createVideo>>,
+    TError,
+    { data: VideoCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateVideoMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Get Video
+ */
+export const getVideo = (videoId: number, signal?: AbortSignal) => {
+    return customAxios<Video>({ url: `/api/gateway/video/${videoId}`, method: 'GET', signal });
+};
+
+export const getGetVideoQueryKey = (videoId?: number) => {
+    return [`/api/gateway/video/${videoId}`] as const;
+};
+
+export const getGetVideoQueryOptions = <
+    TData = Awaited<ReturnType<typeof getVideo>>,
+    TError = HTTPValidationError,
+>(
+    videoId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getVideo>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetVideoQueryKey(videoId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVideo>>> = ({ signal }) =>
+        getVideo(videoId, signal);
+
+    return { queryKey, queryFn, enabled: !!videoId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getVideo>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type GetVideoQueryResult = NonNullable<Awaited<ReturnType<typeof getVideo>>>;
+export type GetVideoQueryError = HTTPValidationError;
+
+export function useGetVideo<
+    TData = Awaited<ReturnType<typeof getVideo>>,
+    TError = HTTPValidationError,
+>(
+    videoId: number,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getVideo>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVideo>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVideo>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVideo<
+    TData = Awaited<ReturnType<typeof getVideo>>,
+    TError = HTTPValidationError,
+>(
+    videoId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getVideo>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVideo>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVideo>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVideo<
+    TData = Awaited<ReturnType<typeof getVideo>>,
+    TError = HTTPValidationError,
+>(
+    videoId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getVideo>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Video
+ */
+
+export function useGetVideo<
+    TData = Awaited<ReturnType<typeof getVideo>>,
+    TError = HTTPValidationError,
+>(
+    videoId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getVideo>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetVideoQueryOptions(videoId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Search Clips
+ */
+export const searchClips = (clipQuery: ClipQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseClip>({
+        url: `/api/gateway/clip`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getSearchClipsQueryKey = (clipQuery?: ClipQuery) => {
+    return [`/api/gateway/clip`, clipQuery] as const;
+};
+
+export const getSearchClipsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchClips>>,
+    TError = HTTPValidationError,
+>(
+    clipQuery: ClipQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchClipsQueryKey(clipQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchClips>>> = ({ signal }) =>
+        searchClips(clipQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchClips>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchClipsQueryResult = NonNullable<Awaited<ReturnType<typeof searchClips>>>;
+export type SearchClipsQueryError = HTTPValidationError;
+
+export function useSearchClips<
+    TData = Awaited<ReturnType<typeof searchClips>>,
+    TError = HTTPValidationError,
+>(
+    clipQuery: ClipQuery,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClips>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClips>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClips<
+    TData = Awaited<ReturnType<typeof searchClips>>,
+    TError = HTTPValidationError,
+>(
+    clipQuery: ClipQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClips>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClips>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClips<
+    TData = Awaited<ReturnType<typeof searchClips>>,
+    TError = HTTPValidationError,
+>(
+    clipQuery: ClipQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Clips
+ */
+
+export function useSearchClips<
+    TData = Awaited<ReturnType<typeof searchClips>>,
+    TError = HTTPValidationError,
+>(
+    clipQuery: ClipQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchClipsQueryOptions(clipQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Clip
+ */
+export const createClip = (clipCreateRequest: ClipCreateRequest, signal?: AbortSignal) => {
+    return customAxios<Clip>({
+        url: `/api/gateway/clip`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: clipCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateClipMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createClip>>,
+        TError,
+        { data: ClipCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createClip>>,
+    TError,
+    { data: ClipCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createClip'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createClip>>,
+        { data: ClipCreateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createClip(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateClipMutationResult = NonNullable<Awaited<ReturnType<typeof createClip>>>;
+export type CreateClipMutationBody = ClipCreateRequest;
+export type CreateClipMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Clip
+ */
+export const useCreateClip = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createClip>>,
+            TError,
+            { data: ClipCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createClip>>,
+    TError,
+    { data: ClipCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateClipMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Get Clip
+ */
+export const getClip = (clipId: number, signal?: AbortSignal) => {
+    return customAxios<Clip>({ url: `/api/gateway/clip/${clipId}`, method: 'GET', signal });
+};
+
+export const getGetClipQueryKey = (clipId?: number) => {
+    return [`/api/gateway/clip/${clipId}`] as const;
+};
+
+export const getGetClipQueryOptions = <
+    TData = Awaited<ReturnType<typeof getClip>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetClipQueryKey(clipId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClip>>> = ({ signal }) =>
+        getClip(clipId, signal);
+
+    return { queryKey, queryFn, enabled: !!clipId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getClip>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type GetClipQueryResult = NonNullable<Awaited<ReturnType<typeof getClip>>>;
+export type GetClipQueryError = HTTPValidationError;
+
+export function useGetClip<
+    TData = Awaited<ReturnType<typeof getClip>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getClip>>,
+                    TError,
+                    Awaited<ReturnType<typeof getClip>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetClip<
+    TData = Awaited<ReturnType<typeof getClip>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getClip>>,
+                    TError,
+                    Awaited<ReturnType<typeof getClip>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetClip<
+    TData = Awaited<ReturnType<typeof getClip>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Clip
+ */
+
+export function useGetClip<
+    TData = Awaited<ReturnType<typeof getClip>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getClip>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetClipQueryOptions(clipId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Search Deliveries
+ */
+export const searchDeliveries = (deliveryQuery: DeliveryQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDelivery>({
+        url: `/api/gateway/delivery`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getSearchDeliveriesQueryKey = (deliveryQuery?: DeliveryQuery) => {
+    return [`/api/gateway/delivery`, deliveryQuery] as const;
+};
+
+export const getSearchDeliveriesQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDeliveries>>,
+    TError = HTTPValidationError,
+>(
+    deliveryQuery: DeliveryQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchDeliveriesQueryKey(deliveryQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDeliveries>>> = ({ signal }) =>
+        searchDeliveries(deliveryQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchDeliveries>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchDeliveriesQueryResult = NonNullable<Awaited<ReturnType<typeof searchDeliveries>>>;
+export type SearchDeliveriesQueryError = HTTPValidationError;
+
+export function useSearchDeliveries<
+    TData = Awaited<ReturnType<typeof searchDeliveries>>,
+    TError = HTTPValidationError,
+>(
+    deliveryQuery: DeliveryQuery,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveries>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveries>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveries<
+    TData = Awaited<ReturnType<typeof searchDeliveries>>,
+    TError = HTTPValidationError,
+>(
+    deliveryQuery: DeliveryQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveries>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveries>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveries<
+    TData = Awaited<ReturnType<typeof searchDeliveries>>,
+    TError = HTTPValidationError,
+>(
+    deliveryQuery: DeliveryQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Deliveries
+ */
+
+export function useSearchDeliveries<
+    TData = Awaited<ReturnType<typeof searchDeliveries>>,
+    TError = HTTPValidationError,
+>(
+    deliveryQuery: DeliveryQuery,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchDeliveriesQueryOptions(deliveryQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Delivery
+ */
+export const createDelivery = (
+    deliveryCreateRequest: DeliveryCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<Delivery>({
+        url: `/api/gateway/delivery`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: deliveryCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateDeliveryMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createDelivery>>,
+        TError,
+        { data: DeliveryCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createDelivery>>,
+    TError,
+    { data: DeliveryCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createDelivery'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createDelivery>>,
+        { data: DeliveryCreateRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return createDelivery(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof createDelivery>>>;
+export type CreateDeliveryMutationBody = DeliveryCreateRequest;
+export type CreateDeliveryMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Delivery
+ */
+export const useCreateDelivery = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createDelivery>>,
+            TError,
+            { data: DeliveryCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createDelivery>>,
+    TError,
+    { data: DeliveryCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateDeliveryMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Get Delivery
+ */
+export const getDelivery = (deliveryId: number, signal?: AbortSignal) => {
+    return customAxios<Delivery>({
+        url: `/api/gateway/delivery/${deliveryId}`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getGetDeliveryQueryKey = (deliveryId?: number) => {
+    return [`/api/gateway/delivery/${deliveryId}`] as const;
+};
+
+export const getGetDeliveryQueryOptions = <
+    TData = Awaited<ReturnType<typeof getDelivery>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDelivery>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetDeliveryQueryKey(deliveryId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDelivery>>> = ({ signal }) =>
+        getDelivery(deliveryId, signal);
+
+    return { queryKey, queryFn, enabled: !!deliveryId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getDelivery>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type GetDeliveryQueryResult = NonNullable<Awaited<ReturnType<typeof getDelivery>>>;
+export type GetDeliveryQueryError = HTTPValidationError;
+
+export function useGetDelivery<
+    TData = Awaited<ReturnType<typeof getDelivery>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDelivery>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDelivery>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDelivery>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDelivery<
+    TData = Awaited<ReturnType<typeof getDelivery>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDelivery>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getDelivery>>,
+                    TError,
+                    Awaited<ReturnType<typeof getDelivery>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetDelivery<
+    TData = Awaited<ReturnType<typeof getDelivery>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDelivery>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Delivery
+ */
+
+export function useGetDelivery<
+    TData = Awaited<ReturnType<typeof getDelivery>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDelivery>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetDeliveryQueryOptions(deliveryId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Update Delivery
+ */
+export const updateDelivery = (
+    deliveryId: number,
+    deliveryUpdateRequest: DeliveryUpdateRequest
+) => {
+    return customAxios<Delivery>({
+        url: `/api/gateway/delivery/${deliveryId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: deliveryUpdateRequest,
+    });
+};
+
+export const getUpdateDeliveryMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateDelivery>>,
+        TError,
+        { deliveryId: number; data: DeliveryUpdateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateDelivery>>,
+    TError,
+    { deliveryId: number; data: DeliveryUpdateRequest },
+    TContext
+> => {
+    const mutationKey = ['updateDelivery'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateDelivery>>,
+        { deliveryId: number; data: DeliveryUpdateRequest }
+    > = (props) => {
+        const { deliveryId, data } = props ?? {};
+
+        return updateDelivery(deliveryId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof updateDelivery>>>;
+export type UpdateDeliveryMutationBody = DeliveryUpdateRequest;
+export type UpdateDeliveryMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Delivery
+ */
+export const useUpdateDelivery = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateDelivery>>,
+            TError,
+            { deliveryId: number; data: DeliveryUpdateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateDelivery>>,
+    TError,
+    { deliveryId: number; data: DeliveryUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateDeliveryMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Delete Delivery
+ */
+export const deleteDelivery = (deliveryId: number) => {
+    return customAxios<Delivery>({ url: `/api/gateway/delivery/${deliveryId}`, method: 'DELETE' });
+};
+
+export const getDeleteDeliveryMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof deleteDelivery>>,
+        TError,
+        { deliveryId: number },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDelivery>>,
+    TError,
+    { deliveryId: number },
+    TContext
+> => {
+    const mutationKey = ['deleteDelivery'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof deleteDelivery>>,
+        { deliveryId: number }
+    > = (props) => {
+        const { deliveryId } = props ?? {};
+
+        return deleteDelivery(deliveryId);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDelivery>>>;
+
+export type DeleteDeliveryMutationError = HTTPValidationError;
+
+/**
+ * @summary Delete Delivery
+ */
+export const useDeleteDelivery = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof deleteDelivery>>,
+            TError,
+            { deliveryId: number },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof deleteDelivery>>,
+    TError,
+    { deliveryId: number },
+    TContext
+> => {
+    const mutationOptions = getDeleteDeliveryMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Delivery Access
+ */
+export const searchDeliveryAccess = (deliveryId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDeliveryAccess>({
+        url: `/api/gateway/delivery/${deliveryId}/access`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getSearchDeliveryAccessQueryKey = (deliveryId?: number) => {
+    return [`/api/gateway/delivery/${deliveryId}/access`] as const;
+};
+
+export const getSearchDeliveryAccessQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDeliveryAccess>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryAccess>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchDeliveryAccessQueryKey(deliveryId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDeliveryAccess>>> = ({ signal }) =>
+        searchDeliveryAccess(deliveryId, signal);
+
+    return { queryKey, queryFn, enabled: !!deliveryId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchDeliveryAccess>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchDeliveryAccessQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchDeliveryAccess>>
+>;
+export type SearchDeliveryAccessQueryError = HTTPValidationError;
+
+export function useSearchDeliveryAccess<
+    TData = Awaited<ReturnType<typeof searchDeliveryAccess>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryAccess>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveryAccess>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveryAccess>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveryAccess<
+    TData = Awaited<ReturnType<typeof searchDeliveryAccess>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryAccess>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveryAccess>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveryAccess>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveryAccess<
+    TData = Awaited<ReturnType<typeof searchDeliveryAccess>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryAccess>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Delivery Access
+ */
+
+export function useSearchDeliveryAccess<
+    TData = Awaited<ReturnType<typeof searchDeliveryAccess>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryAccess>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchDeliveryAccessQueryOptions(deliveryId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Delivery Access
+ */
+export const createDeliveryAccess = (
+    deliveryId: number,
+    deliveryAccessCreateRequest: DeliveryAccessCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DeliveryAccess>({
+        url: `/api/gateway/delivery/${deliveryId}/access`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: deliveryAccessCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateDeliveryAccessMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createDeliveryAccess>>,
+        TError,
+        { deliveryId: number; data: DeliveryAccessCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createDeliveryAccess>>,
+    TError,
+    { deliveryId: number; data: DeliveryAccessCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createDeliveryAccess'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createDeliveryAccess>>,
+        { deliveryId: number; data: DeliveryAccessCreateRequest }
+    > = (props) => {
+        const { deliveryId, data } = props ?? {};
+
+        return createDeliveryAccess(deliveryId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDeliveryAccessMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createDeliveryAccess>>
+>;
+export type CreateDeliveryAccessMutationBody = DeliveryAccessCreateRequest;
+export type CreateDeliveryAccessMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Delivery Access
+ */
+export const useCreateDeliveryAccess = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createDeliveryAccess>>,
+            TError,
+            { deliveryId: number; data: DeliveryAccessCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createDeliveryAccess>>,
+    TError,
+    { deliveryId: number; data: DeliveryAccessCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateDeliveryAccessMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Update Delivery Access
+ */
+export const updateDeliveryAccess = (
+    deliveryId: number,
+    accessId: number,
+    deliveryAccessUpdateRequest: DeliveryAccessUpdateRequest
+) => {
+    return customAxios<DeliveryAccess>({
+        url: `/api/gateway/delivery/${deliveryId}/access/${accessId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: deliveryAccessUpdateRequest,
+    });
+};
+
+export const getUpdateDeliveryAccessMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateDeliveryAccess>>,
+        TError,
+        { deliveryId: number; accessId: number; data: DeliveryAccessUpdateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateDeliveryAccess>>,
+    TError,
+    { deliveryId: number; accessId: number; data: DeliveryAccessUpdateRequest },
+    TContext
+> => {
+    const mutationKey = ['updateDeliveryAccess'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateDeliveryAccess>>,
+        { deliveryId: number; accessId: number; data: DeliveryAccessUpdateRequest }
+    > = (props) => {
+        const { deliveryId, accessId, data } = props ?? {};
+
+        return updateDeliveryAccess(deliveryId, accessId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDeliveryAccessMutationResult = NonNullable<
+    Awaited<ReturnType<typeof updateDeliveryAccess>>
+>;
+export type UpdateDeliveryAccessMutationBody = DeliveryAccessUpdateRequest;
+export type UpdateDeliveryAccessMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Delivery Access
+ */
+export const useUpdateDeliveryAccess = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateDeliveryAccess>>,
+            TError,
+            { deliveryId: number; accessId: number; data: DeliveryAccessUpdateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateDeliveryAccess>>,
+    TError,
+    { deliveryId: number; accessId: number; data: DeliveryAccessUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateDeliveryAccessMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Delete Delivery Access
+ */
+export const deleteDeliveryAccess = (deliveryId: number, accessId: number) => {
+    return customAxios<DeliveryAccess>({
+        url: `/api/gateway/delivery/${deliveryId}/access/${accessId}`,
+        method: 'DELETE',
+    });
+};
+
+export const getDeleteDeliveryAccessMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof deleteDeliveryAccess>>,
+        TError,
+        { deliveryId: number; accessId: number },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDeliveryAccess>>,
+    TError,
+    { deliveryId: number; accessId: number },
+    TContext
+> => {
+    const mutationKey = ['deleteDeliveryAccess'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof deleteDeliveryAccess>>,
+        { deliveryId: number; accessId: number }
+    > = (props) => {
+        const { deliveryId, accessId } = props ?? {};
+
+        return deleteDeliveryAccess(deliveryId, accessId);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDeliveryAccessMutationResult = NonNullable<
+    Awaited<ReturnType<typeof deleteDeliveryAccess>>
+>;
+
+export type DeleteDeliveryAccessMutationError = HTTPValidationError;
+
+/**
+ * @summary Delete Delivery Access
+ */
+export const useDeleteDeliveryAccess = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof deleteDeliveryAccess>>,
+            TError,
+            { deliveryId: number; accessId: number },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof deleteDeliveryAccess>>,
+    TError,
+    { deliveryId: number; accessId: number },
+    TContext
+> => {
+    const mutationOptions = getDeleteDeliveryAccessMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Delivery Feedback
+ */
+export const searchDeliveryFeedback = (deliveryId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDeliveryFeedback>({
+        url: `/api/gateway/delivery/${deliveryId}/feedback`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getSearchDeliveryFeedbackQueryKey = (deliveryId?: number) => {
+    return [`/api/gateway/delivery/${deliveryId}/feedback`] as const;
+};
+
+export const getSearchDeliveryFeedbackQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryFeedback>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchDeliveryFeedbackQueryKey(deliveryId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDeliveryFeedback>>> = ({
+        signal,
+    }) => searchDeliveryFeedback(deliveryId, signal);
+
+    return { queryKey, queryFn, enabled: !!deliveryId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchDeliveryFeedbackQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchDeliveryFeedback>>
+>;
+export type SearchDeliveryFeedbackQueryError = HTTPValidationError;
+
+export function useSearchDeliveryFeedback<
+    TData = Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryFeedback>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveryFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveryFeedback<
+    TData = Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryFeedback>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchDeliveryFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchDeliveryFeedback<
+    TData = Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Delivery Feedback
+ */
+
+export function useSearchDeliveryFeedback<
+    TData = Awaited<ReturnType<typeof searchDeliveryFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchDeliveryFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchDeliveryFeedbackQueryOptions(deliveryId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Delivery Feedback
+ */
+export const createDeliveryFeedback = (
+    deliveryId: number,
+    deliveryFeedbackCreateRequest: DeliveryFeedbackCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DeliveryFeedback>({
+        url: `/api/gateway/delivery/${deliveryId}/feedback`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: deliveryFeedbackCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateDeliveryFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createDeliveryFeedback>>,
+        TError,
+        { deliveryId: number; data: DeliveryFeedbackCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createDeliveryFeedback>>,
+    TError,
+    { deliveryId: number; data: DeliveryFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createDeliveryFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createDeliveryFeedback>>,
+        { deliveryId: number; data: DeliveryFeedbackCreateRequest }
+    > = (props) => {
+        const { deliveryId, data } = props ?? {};
+
+        return createDeliveryFeedback(deliveryId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDeliveryFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createDeliveryFeedback>>
+>;
+export type CreateDeliveryFeedbackMutationBody = DeliveryFeedbackCreateRequest;
+export type CreateDeliveryFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Delivery Feedback
+ */
+export const useCreateDeliveryFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createDeliveryFeedback>>,
+            TError,
+            { deliveryId: number; data: DeliveryFeedbackCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createDeliveryFeedback>>,
+    TError,
+    { deliveryId: number; data: DeliveryFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateDeliveryFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Clip Feedback
+ */
+export const searchClipFeedback = (deliveryId: number, clipId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseClipFeedback>({
+        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getSearchClipFeedbackQueryKey = (deliveryId?: number, clipId?: number) => {
+    return [`/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`] as const;
+};
+
+export const getSearchClipFeedbackQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchClipFeedbackQueryKey(deliveryId, clipId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchClipFeedback>>> = ({ signal }) =>
+        searchClipFeedback(deliveryId, clipId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(deliveryId && clipId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type SearchClipFeedbackQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchClipFeedback>>
+>;
+export type SearchClipFeedbackQueryError = HTTPValidationError;
+
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    clipId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClipFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClipFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClipFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClipFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Clip Feedback
+ */
+
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    deliveryId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchClipFeedbackQueryOptions(deliveryId, clipId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Clip Feedback
+ */
+export const createClipFeedback = (
+    deliveryId: number,
+    clipId: number,
+    clipFeedbackCreateRequest: ClipFeedbackCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<ClipFeedback>({
+        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: clipFeedbackCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateClipFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createClipFeedback>>,
+        TError,
+        { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createClipFeedback>>,
+    TError,
+    { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createClipFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createClipFeedback>>,
+        { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest }
+    > = (props) => {
+        const { deliveryId, clipId, data } = props ?? {};
+
+        return createClipFeedback(deliveryId, clipId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateClipFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createClipFeedback>>
+>;
+export type CreateClipFeedbackMutationBody = ClipFeedbackCreateRequest;
+export type CreateClipFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Clip Feedback
+ */
+export const useCreateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createClipFeedback>>,
+            TError,
+            { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createClipFeedback>>,
+    TError,
+    { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateClipFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Update Clip Feedback
+ */
+export const updateClipFeedback = (
+    deliveryId: number,
+    clipId: number,
+    feedbackId: number,
+    clipFeedbackUpdateRequest: ClipFeedbackUpdateRequest
+) => {
+    return customAxios<ClipFeedback>({
+        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback/${feedbackId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: clipFeedbackUpdateRequest,
+    });
+};
+
+export const getUpdateClipFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateClipFeedback>>,
+        TError,
+        { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateClipFeedback>>,
+    TError,
+    { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
+    TContext
+> => {
+    const mutationKey = ['updateClipFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateClipFeedback>>,
+        { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest }
+    > = (props) => {
+        const { deliveryId, clipId, feedbackId, data } = props ?? {};
+
+        return updateClipFeedback(deliveryId, clipId, feedbackId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateClipFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof updateClipFeedback>>
+>;
+export type UpdateClipFeedbackMutationBody = ClipFeedbackUpdateRequest;
+export type UpdateClipFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Clip Feedback
+ */
+export const useUpdateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateClipFeedback>>,
+            TError,
+            {
+                deliveryId: number;
+                clipId: number;
+                feedbackId: number;
+                data: ClipFeedbackUpdateRequest;
+            },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateClipFeedback>>,
+    TError,
+    { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateClipFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
 
 /**
  * Authenticate a user with a Google ID token from Google One Tap / Sign-In.

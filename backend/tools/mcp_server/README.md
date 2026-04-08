@@ -9,7 +9,7 @@ Development MCP server for fullstack-base that provides AI-accessible tools.
 - Git operations
 - Python package management (uv)
 - Code quality tools (ruff, pyright)
-- Notes documentation system for AI agents
+- Documentation vault tools (docs/ Obsidian vault)
 
 ## Running
 
@@ -20,9 +20,15 @@ cd backend
 uv run python -m mcp_server.server
 ```
 
-## Notes System
+## Vault Tools
 
-The `notes/` subpackage provides a markdown-based documentation system for AI agents with:
-- Scoped guidelines (file glob patterns)
-- Items with enforcement levels (locked, strict, recommended, flexible)
-- Fast index-based lookups
+The server provides tools for querying the Obsidian-style documentation vault in `docs/`:
+
+| Tool | Purpose |
+|------|---------|
+| `get_vault_index()` | Read the vault map of content |
+| `get_vault_note(name)` | Read a specific note by title or path |
+| `search_vault(query)` | Search all notes for a term |
+| `get_product_notes()` | Business rules and constraints |
+| `get_vault_area(area)` | Get all notes for an area |
+| `list_design_decisions()` | List architectural decisions |

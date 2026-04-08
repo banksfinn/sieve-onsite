@@ -1,31 +1,25 @@
 # Cursor Rules
 
-This project uses a centralized documentation system in `.ai/notes/`. All detailed guidelines, patterns, and conventions are maintained there.
+This project uses a documentation vault in `docs/`. All guidelines, patterns, and conventions are maintained there as interconnected Obsidian-style notes.
 
-## Documentation System
+## Documentation Vault
 
-**Before working on any file**, check for relevant guidelines:
+**Before working on any file**, consult the relevant vault documentation:
 
-1. Look at `.ai/notes/` for topic-specific documentation
-2. Each note contains items with enforcement levels:
-   - `locked`: Do not deviate without explicit user approval
-   - `strict`: Follow unless there's a strong reason not to
-   - `recommended`: Preferred approach, alternatives acceptable
-   - `flexible`: Suggestion only
+1. Read `AGENTS.md` in the project root for the full vault structure
+2. Read `docs/Index.md` for the map of all documentation
+3. Read `docs/Product Notes.md` before any product-facing changes
 
-## Available Notes
+## Vault Structure
 
-| Note | Scope |
-|------|-------|
-| `agents.md` | Core AI guidelines (all files) |
-| `backend-structure.md` | Backend architecture & patterns |
-| `frontend-patterns.md` | React/TypeScript patterns |
-| `database-patterns.md` | SQLAlchemy, Pydantic, migrations |
-| `api-patterns.md` | FastAPI routes, OpenAPI |
-| `authentication.md` | Auth flow, UserDependency |
-| `shadcn-ui.md` | shadcn/ui components & theming |
-| `component-library.md` | Available UI components |
-| `docker-infrastructure.md` | Docker & local dev setup |
+| Section | Content |
+|---------|---------|
+| `docs/Architecture/` | System overview, backend, frontend, infrastructure, environment, MCP server |
+| `docs/Clients/` | DatabaseClient, BaseEntityStore, UserStore, GCSClient, GoogleOAuthClient |
+| `docs/Models/` | Data model overview, BaseEntity, User |
+| `docs/API/` | Route registration, auth endpoints, user endpoints |
+| `docs/Decisions/` | Cookie JWT, async-first, editable libs, OpenAPI codegen, Redux+RQ, blueprints |
+| `docs/Frontend/` | Provider stack, auth flow, state management, components, shadcn/ui |
 
 ## Quick Reference
 
@@ -44,4 +38,4 @@ make sync_openapi       # Regenerate frontend types from backend
 make db_generate_migration  # Create new database migration
 ```
 
-For detailed patterns and conventions, refer to the notes in `.ai/notes/`.
+For detailed patterns and conventions, refer to notes in `docs/`.

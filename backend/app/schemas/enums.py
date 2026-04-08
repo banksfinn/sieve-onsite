@@ -7,6 +7,11 @@ class UserRole(str, Enum):
     customer = "customer"
 
 
+class AccessLevel(str, Enum):
+    regular = "regular"
+    admin = "admin"
+
+
 class DeliveryStatus(str, Enum):
     draft = "draft"
     sent_to_customer = "sent_to_customer"

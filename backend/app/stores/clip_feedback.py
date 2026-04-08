@@ -37,6 +37,8 @@ class ClipFeedbackStore(
             stmt = stmt.filter(ClipFeedbackModel.delivery_id == query.delivery_id)
         if query.user_id:
             stmt = stmt.filter(ClipFeedbackModel.user_id == query.user_id)
+        if query.is_resolved is not None:
+            stmt = stmt.filter(ClipFeedbackModel.is_resolved == query.is_resolved)
         return stmt
 
 

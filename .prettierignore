@@ -1,2 +1,2 @@
-# Ignore AI notes - they use special HTML comment markers that shouldn't be reformatted
-.ai/notes/**/*.md
+# Ignore vault documentation - uses Obsidian wikilinks that shouldn't be reformatted
+docs/**/*.md

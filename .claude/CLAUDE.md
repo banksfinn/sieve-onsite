@@ -4,51 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Documentation Vault (REQUIRED - READ FIRST)
 
-This project maintains an Obsidian-style documentation vault in `docs/`. **Before starting any task**, read `AGENTS.md` in the project root and consult the relevant vault notes. Key entry points:
-
-- `docs/Index.md` - Full map of all documentation
-- `docs/Product Notes.md` - Business rules and customer constraints (ALWAYS check before product decisions)
-- `docs/Architecture/Architecture Overview.md` - System-level understanding
-- `docs/Decisions/` - Design decision rationale
-
-See `AGENTS.md` for the complete vault structure and navigation guide.
-
-## MCP Notes System (REQUIRED)
-
-This project uses a note-based documentation system in `.ai/notes/` accessible via MCP tools. **You MUST actively use this system throughout every task.**
+This project maintains an Obsidian-style documentation vault in `docs/`. **Before starting any task**, read `AGENTS.md` in the project root and consult the relevant vault notes.
 
 ### Required Workflow
 
-1. **At the start of every task**: Call `get_notes_for_path("path/to/file")` for each file you'll be working with
-2. **Before making changes**: Review the guidelines and enforcement levels
-3. **After completing work**: Document any new patterns or gotchas discovered using `add_item()`
+1. **At the start of every task**: Call `get_vault_area()` for the area you're working in, or `get_vault_index()` to orient yourself
+2. **Before product decisions**: Call `get_product_notes()` to check business rules
+3. **For specific topics**: Call `get_vault_note("note title")` to read a specific note
+4. **When searching**: Call `search_vault("term")` to find relevant documentation
 
-### Enforcement Levels
-- `locked`: Do not deviate without explicit user approval
-- `strict`: Follow unless there's a strong reason not to
-- `recommended`: Preferred approach, alternatives acceptable
-- `flexible`: Suggestion only
+### MCP Tools Reference
 
-### When You Learn Something Important
-- Call `add_item(note_id, content)` to document patterns, gotchas, or conventions discovered during work
-- Your items start as `proposed` with `flexible` enforcement until the user approves them
-- Use `search_notes()` to find the appropriate note, or `create_note()` if none exists
-
-### Working with Items
-- **User items** (`source: user`): Ask the user before making any edits
-- **LLM items** (`source: llm`): Can be updated directly via `update_item()`
-
-### MCP Tools Reference - Coding Notes
-| Tool | Purpose |
-|------|---------|
-| `get_notes_for_path(file_path)` | **Use first** - Get guidelines for a specific file |
-| `search_notes(query, tags, source)` | Search across all notes |
-| `get_note(note_id)` | Get full content of a note |
-| `create_note(id, title, purpose, paths)` | Create a new note |
-| `add_item(note_id, content)` | Add a guideline to a note |
-| `update_item(note_id, item_index, ...)` | Update an item |
-
-### MCP Tools Reference - Documentation Vault
 | Tool | Purpose |
 |------|---------|
 | `get_vault_index()` | **Read first** - Get the full vault map (docs/Index.md) |
@@ -58,18 +24,14 @@ This project uses a note-based documentation system in `.ai/notes/` accessible v
 | `get_vault_area(area)` | Get all notes for an area (backend, frontend, auth, database, api, infrastructure, product) |
 | `list_design_decisions()` | List all architectural decision notes with summaries |
 
-### Available Notes
-| Note ID | Scope |
-|---------|-------|
-| `agents` | All files (`**/*`) - core AI guidelines |
-| `environment-setup` | All files (`**/*`) - required local environment |
-| `backend-structure` | `backend/**/*.py` - architecture & patterns |
-| `frontend-patterns` | `frontend/src/**/*.{ts,tsx}` - React/TypeScript |
-| `database-patterns` | blueprints, stores, migrations |
-| `api-patterns` | routes, OpenAPI |
-| `docker-infrastructure` | Docker, compose files |
-| `authentication` | user_management, auth routes |
-| `mcp-server` | `backend/tools/mcp_server/**/*` - MCP dev server |
+### Key Entry Points
+
+- `docs/Index.md` - Full map of all documentation
+- `docs/Product Notes.md` - Business rules and customer constraints
+- `docs/Architecture/Architecture Overview.md` - System-level understanding
+- `docs/Decisions/` - Design decision rationale
+
+See `AGENTS.md` for the complete vault structure and navigation guide.
 
 ## Project Overview
 

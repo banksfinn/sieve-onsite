@@ -16,21 +16,29 @@ class UserModel(BaseEntityModel):
 
     email_address: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
+    role: Mapped[str] = mapped_column(String, default="customer")
+    access_level: Mapped[str] = mapped_column(String, default="regular")
 
 
 class User(BaseEntity):
     email_address: EmailStr
     name: str
+    role: str = "customer"
+    access_level: str = "regular"
 
 
 class UserCreateRequest(BaseEntityCreateRequest):
     email_address: EmailStr
     name: str
+    role: str = "customer"
+    access_level: str = "regular"
 
 
 class UserUpdateRequest(BaseEntityUpdateRequest):
-    pass
+    role: str | None = None
+    access_level: str | None = None
 
 
 class UserQuery(BaseEntityQuery):
     email_address: EmailStr | None = None
+    role: str | None = None

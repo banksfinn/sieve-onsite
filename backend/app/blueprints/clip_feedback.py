@@ -6,7 +6,7 @@ from database_manager.blueprints.base_entity import (
     BaseEntityUpdateRequest,
 )
 from database_manager.schemas.table_names import clip_feedback_table_name
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.schemas.enums import ClipRating
@@ -20,6 +20,13 @@ class ClipFeedbackModel(BaseEntityModel):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     rating: Mapped[str] = mapped_column(String, nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Timestamp in the video where this feedback applies
+    timestamp: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Which metadata field this feedback is about (e.g. "avg_face_size", "max_num_faces")
+    metadata_field: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Which dataset version resolved this issue (null = unresolved)
+    resolved_in_version_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("dataset_versions.id"), nullable=True)
+    is_resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class ClipFeedback(BaseEntity):
@@ -28,6 +35,10 @@ class ClipFeedback(BaseEntity):
     user_id: int
     rating: ClipRating
     comment: str | None = None
+    timestamp: float | None = None
+    metadata_field: str | None = None
+    resolved_in_version_id: int | None = None
+    is_resolved: bool = False
 
 
 class ClipFeedbackCreateRequest(BaseEntityCreateRequest):
@@ -36,14 +47,19 @@ class ClipFeedbackCreateRequest(BaseEntityCreateRequest):
     user_id: int
     rating: ClipRating
     comment: str | None = None
+    timestamp: float | None = None
+    metadata_field: str | None = None
 
 
 class ClipFeedbackUpdateRequest(BaseEntityUpdateRequest):
     rating: ClipRating | None = None
     comment: str | None = None
+    resolved_in_version_id: int | None = None
+    is_resolved: bool | None = None
 
 
 class ClipFeedbackQuery(BaseEntityQuery):
     clip_id: int | None = None
     delivery_id: int | None = None
     user_id: int | None = None
+    is_resolved: bool | None = None

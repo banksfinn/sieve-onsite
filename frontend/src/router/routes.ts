@@ -10,6 +10,8 @@
  */
 export const Routes = {
     HOME: '/home',
+    DELIVERIES: '/deliveries',
+    DELIVERY_DETAIL: '/delivery/:deliveryId',
     LOGIN: '/login',
     REGISTER: '/register',
 } as const;
@@ -28,7 +30,7 @@ export const PUBLIC_ROUTES: readonly RoutePath[] = [
 /**
  * The default route to redirect to after successful login.
  */
-export const DEFAULT_AUTHENTICATED_ROUTE = Routes.HOME;
+export const DEFAULT_AUTHENTICATED_ROUTE = Routes.DELIVERIES;
 
 /**
  * The route to redirect to when authentication is required.

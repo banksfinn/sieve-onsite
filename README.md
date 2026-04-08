@@ -90,7 +90,7 @@ frontend/
 
 ## AI-Assisted Development
 
-This repository includes documentation in `.ai/notes/` designed for AI coding assistants. The notes cover patterns for backend structure, database operations, API design, and frontend conventions.
+This repository includes an Obsidian-style documentation vault in `docs/` designed for AI coding assistants. The vault covers architecture, design decisions, API patterns, data models, and frontend conventions with cross-linked notes.
 
 ## License
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LogOut, User, type LucideIcon } from 'lucide-react';
+import { Home, LogOut, Package, User, type LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { clearUser } from '@/store/components/authSlice';
@@ -60,6 +60,7 @@ const defaultNavGroups: NavGroup[] = [
         label: 'Main',
         items: [
             { title: 'Home', url: '/home', icon: Home },
+            { title: 'Deliveries', url: '/deliveries', icon: Package },
             { title: 'Profile', url: '/profile', icon: User },
         ],
     },

@@ -30,6 +30,8 @@ class UserStore(
     def _apply_entity_specific_search(self, query: UserQuery, stmt: Select[tuple[UserModel]]) -> Select[tuple[UserModel]]:
         if query.email_address:
             stmt = stmt.filter(UserModel.email_address == query.email_address)
+        if query.role:
+            stmt = stmt.filter(UserModel.role == query.role)
         return stmt
 
 

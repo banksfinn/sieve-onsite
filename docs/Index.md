@@ -8,6 +8,8 @@ Full-stack application for GTM-Engineering video sample review collaboration. Bu
 - [[Backend Architecture]] - FastAPI gateway, libs, and tools
 - [[Frontend Architecture]] - React + TypeScript SPA
 - [[Infrastructure]] - Docker Compose, ports, and deployment
+- [[Environment Setup]] - Node, Python, Bitwarden secrets, env vars
+- [[MCP Server Dev]] - FastMCP dev server tools and guidelines
 
 ## Clients & Services
 
@@ -44,7 +46,9 @@ Full-stack application for GTM-Engineering video sample review collaboration. Bu
 - [[Auth Flow]] - Session initialization and route protection
 - [[State Management]] - Redux Toolkit + React Query
 - [[Component Library]] - shadcn/ui + custom components
+- [[shadcn-ui Guide]] - Theming, cn(), forms, icons, component patterns
 
 ## Reference
 
+- [[Product Notes]] - Business rules from product conversations
 - [[Project Requirements]] - Original problem statement and rubric

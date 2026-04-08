@@ -13,3 +13,9 @@ delivery_access_table_name = "delivery_access"
 # Feedback
 clip_feedback_table_name = "clip_feedback"
 delivery_feedback_table_name = "delivery_feedback"
+
+# Assignments
+dataset_assignment_table_name = "dataset_assignments"
+
+# Invitations
+invitation_table_name = "invitations"

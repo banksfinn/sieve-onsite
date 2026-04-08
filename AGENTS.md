@@ -98,12 +98,6 @@ The MCP server (`backend/tools/mcp_server/`) exposes tools for querying the vaul
 4. Call `get_vault_note("Blueprint Pattern")` for specific topics
 5. Call `search_vault("async")` to find notes mentioning a concept
 
-## MCP Notes System
-
-This project also has an MCP-based notes system in `.ai/notes/`. Use both systems:
-- `docs/` vault: Architecture, design decisions, product context
-- `.ai/notes/`: Tactical coding guidelines and enforcement rules
-
 ## Common Commands
 
 ```bash

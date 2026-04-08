@@ -6,7 +6,7 @@ from user_management.api.dependencies import UserDependency
 from app.blueprints.delivery import Delivery, DeliveryCreateRequest, DeliveryQuery, DeliveryUpdateRequest
 from app.blueprints.delivery_access import DeliveryAccess, DeliveryAccessCreateRequest, DeliveryAccessQuery, DeliveryAccessUpdateRequest
 from app.blueprints.delivery_feedback import DeliveryFeedback, DeliveryFeedbackCreateRequest, DeliveryFeedbackQuery
-from app.blueprints.clip_feedback import ClipFeedback, ClipFeedbackCreateRequest, ClipFeedbackQuery
+from app.blueprints.clip_feedback import ClipFeedback, ClipFeedbackCreateRequest, ClipFeedbackQuery, ClipFeedbackUpdateRequest
 from app.stores.delivery import delivery_store
 from app.stores.delivery_access import delivery_access_store
 from app.stores.delivery_feedback import delivery_feedback_store
@@ -99,3 +99,9 @@ async def create_clip_feedback(user: UserDependency, delivery_id: int, clip_id: 
     request.clip_id = clip_id
     request.user_id = user.id
     return await clip_feedback_store.create_entity(request)
+
+
+@router.patch("/{delivery_id}/clip/{clip_id}/feedback/{feedback_id}", response_model=ClipFeedback)
+async def update_clip_feedback(user: UserDependency, delivery_id: int, clip_id: int, feedback_id: int, request: ClipFeedbackUpdateRequest):
+    request.id = feedback_id
+    return await clip_feedback_store.update_entity(request)
