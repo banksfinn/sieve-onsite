@@ -22,7 +22,7 @@ import {
     DeliveryFeedbackStatus,
     getSearchClipFeedbackQueryKey,
     getSearchDeliveryFeedbackQueryKey,
-} from '@/openapi/sieveBase';
+} from '@/openapi/sieveOnsite';
 import {
     ArrowLeft,
     Play,
@@ -33,10 +33,12 @@ import {
     ChevronRight,
     Send,
     Film,
+    Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
+    requested: 'bg-amber-100 text-amber-700',
     draft: 'bg-gray-100 text-gray-700',
     sent_to_customer: 'bg-blue-100 text-blue-700',
     in_review: 'bg-yellow-100 text-yellow-700',
@@ -334,7 +336,26 @@ export default function DeliveryDetailPage() {
                     </div>
                 </div>
 
-                {/* Main content: clip grid + viewer */}
+                {/* Requested state: limited view for customers */}
+                {delivery?.status === 'requested' ? (
+                    <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center max-w-md px-4">
+                            <Package className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+                            <h2 className="text-xl font-semibold mb-2">Request Submitted</h2>
+                            <p className="text-muted-foreground mb-4">
+                                Your dataset request has been received. Our team will review it and begin preparing samples for you.
+                            </p>
+                            {delivery.customer_request_description && (
+                                <div className="bg-muted/50 rounded-lg p-4 text-left text-sm">
+                                    <p className="text-xs font-medium text-muted-foreground mb-1">Your request</p>
+                                    <p>{delivery.customer_request_description}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+
+                /* Main content: clip grid + viewer */
                 <div className="flex-1 flex overflow-hidden">
                     {/* Clip grid (left panel) */}
                     <div className="w-64 border-r overflow-y-auto p-3 space-y-2">
@@ -477,6 +498,7 @@ export default function DeliveryDetailPage() {
                         </div>
                     </div>
                 </div>
+                )}
             </div>
         </AppSidebar>
     );

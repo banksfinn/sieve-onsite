@@ -18,7 +18,7 @@ import {
     ClipRating,
     DatasetVersion,
     getSearchClipFeedbackQueryKey,
-} from '@/openapi/sieveBase';
+} from '@/openapi/sieveOnsite';
 import {
     ArrowLeft,
     ThumbsUp,

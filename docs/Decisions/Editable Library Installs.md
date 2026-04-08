@@ -39,7 +39,7 @@ backend/libs/{name}/
 | `oauth_manager` | [[GoogleOAuthClient]], OAuth config | Google OAuth |
 | `storage_manager` | [[GCSClient]] | Cloud storage |
 | `logging_manager` | `configure_logging()`, `get_logger()` | Structured logging |
-| `fullstack_types` | Enums, datetime types, pagination | Shared types |
+| `sieve_types` | Enums, datetime types, pagination | Shared types |
 
 ## Import Pattern
 

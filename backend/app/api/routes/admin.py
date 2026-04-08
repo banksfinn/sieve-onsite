@@ -1,12 +1,15 @@
+from datetime import UTC, datetime
 from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from logging_manager.logger import get_logger
 from pydantic import BaseModel
 
 from database_manager.blueprints.base_entity import BaseEntitySearchResponse
 from user_management.blueprints.user import User, UserCreateRequest, UserQuery, UserUpdateRequest
-from user_management.core.security import generate_access_token, set_access_token_cookie
+from user_management.core.security import decode_access_token, generate_access_token, set_access_token_cookie
+from user_management.schemas.token import TokenDependency
 from user_management.stores.user import user_store
 
 from app.api.dependencies.authorization import AdminDependency
@@ -69,8 +72,29 @@ async def impersonate_user(admin: AdminDependency, request: ImpersonateRequest, 
     return target
 
 
+async def get_impersonating_admin(token: TokenDependency) -> User:
+    """Resolve the original admin from an impersonation token. Rejects non-impersonation tokens."""
+    access_data = decode_access_token(token)
+
+    if datetime.fromtimestamp(access_data.exp, UTC) < datetime.now(UTC):
+        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Token has expired")
+
+    if access_data.impersonated_by is None:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Not currently impersonating")
+
+    admin = await user_store.get_entity_by_id(access_data.impersonated_by)
+    if not admin or admin.access_level != AccessLevel.admin.value:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Original admin not found or no longer admin")
+
+    return admin
+
+
+ImpersonatingAdminDependency = Annotated[User, Depends(get_impersonating_admin)]
+
+
 @router.post("/stop-impersonation", response_model=User)
-async def stop_impersonation(admin: AdminDependency, response: Response):
+async def stop_impersonation(admin: ImpersonatingAdminDependency, response: Response):
+    logger.info("Admin stopped impersonation", admin_id=admin.id)
     token = generate_access_token(user_id=admin.id)
     set_access_token_cookie(response, token)
     return admin

@@ -6,6 +6,12 @@ See [[User Roles and Access]] for the underlying role/access level model.
 
 ## Customer Flows
 
+### Submit a Dataset Request
+1. Customer navigates to a "New Request" form
+2. Fills in dataset requirements (name, description, focus areas)
+3. Submits — creates a new Dataset in `draft` state
+4. Customer is automatically assigned to the dataset
+
 ### View Requests and Status
 1. Customer sees a list of datasets they're assigned to
 2. Each dataset shows current status, active version, and team (GTM contacts visible, researchers hidden)
@@ -114,7 +120,7 @@ See [[User Roles and Access]] for the underlying role/access level model.
 4. JWT cookie is set, session begins
 
 ### Dataset Lifecycle (Handoff Flow) {#dataset-lifecycle}
-1. **GTM** creates a dataset request on behalf of a customer (customer must exist first)
+1. **Customer** submits a dataset request themselves, or **GTM** creates one on behalf of a customer (customer must exist first)
 2. **GTM** assigns themselves as lead and assigns one or more researchers
 3. **Researcher** creates versions, iterates on the dataset
 4. **GTM and/or Researcher** review versions, provide feedback

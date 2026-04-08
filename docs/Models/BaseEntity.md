@@ -24,7 +24,7 @@ Response model with typed fields:
 | `created_at` | `AnnotatedArrow` |
 | `updated_at` | `AnnotatedArrow` |
 
-`AnnotatedArrow` is from `fullstack_types.datetimes` - handles datetime serialization.
+`AnnotatedArrow` is from `sieve_types.datetimes` - handles datetime serialization.
 
 ## Query, Request, and Response Types
 
@@ -39,7 +39,7 @@ Response model with typed fields:
 
 ## Pagination Defaults
 
-From `fullstack_types.query`:
+From `sieve_types.query`:
 - `DEFAULT_LIMIT` - Maximum results per page
 - `DEFAULT_OFFSET` - Starting offset (0)
 - `SortOrder` - `asc` or `desc`

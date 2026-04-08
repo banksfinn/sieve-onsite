@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { User } from '@/openapi/fullstackBase';
+import { User } from '@/openapi/sieveOnsite';
 import { useAppSelector } from '@/store/hooks';
 import { RootState } from '@/store/store';
 

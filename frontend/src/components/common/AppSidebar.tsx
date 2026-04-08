@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LogOut, Package, User, type LucideIcon } from 'lucide-react';
+import { Home, LogOut, Package, Database, Shield, User, UserX, type LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { clearUser } from '@/store/components/authSlice';
+import { clearUser, setUser, useCurrentUser } from '@/store/components/authSlice';
 import { useAppDispatch } from '@/store/hooks';
+import { useStopImpersonation } from '@/openapi/sieveOnsite';
 import {
     Sidebar,
     SidebarContent,
@@ -55,16 +56,30 @@ interface AppSidebarProps {
 }
 
 /** Default navigation groups if none provided */
-const defaultNavGroups: NavGroup[] = [
-    {
-        label: 'Main',
-        items: [
-            { title: 'Home', url: '/home', icon: Home },
-            { title: 'Deliveries', url: '/deliveries', icon: Package },
-            { title: 'Profile', url: '/profile', icon: User },
-        ],
-    },
-];
+function getNavGroups(role?: string, accessLevel?: string): NavGroup[] {
+    const main: NavItem[] = [
+        { title: 'Home', url: '/home', icon: Home },
+    ];
+
+    // GTM and researchers see datasets
+    if (role === 'gtm' || role === 'researcher' || accessLevel === 'admin') {
+        main.push({ title: 'Datasets', url: '/datasets', icon: Database });
+    }
+
+    main.push({ title: 'Deliveries', url: '/deliveries', icon: Package });
+    main.push({ title: 'Profile', url: '/profile', icon: User });
+
+    const groups: NavGroup[] = [{ label: 'Main', items: main }];
+
+    if (accessLevel === 'admin') {
+        groups.push({
+            label: 'Admin',
+            items: [{ title: 'Admin Panel', url: '/admin', icon: Shield }],
+        });
+    }
+
+    return groups;
+}
 
 /**
  * Application sidebar component with navigation.
@@ -89,7 +104,7 @@ const defaultNavGroups: NavGroup[] = [
  * ```
  */
 export function AppSidebar({
-    navGroups = defaultNavGroups,
+    navGroups,
     header,
     footer,
     className,
@@ -98,6 +113,19 @@ export function AppSidebar({
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const currentUser = useCurrentUser();
+    const resolvedNavGroups = navGroups ?? getNavGroups(currentUser?.role, currentUser?.access_level);
+
+    const isImpersonating = currentUser?.impersonated_by != null;
+
+    const { mutate: stopImpersonation } = useStopImpersonation({
+        mutation: {
+            onSuccess: (data) => {
+                dispatch(setUser(data));
+                navigate('/home');
+            },
+        },
+    });
 
     const handleLogout = () => {
         dispatch(clearUser());
@@ -110,7 +138,7 @@ export function AppSidebar({
                 {header && <SidebarHeader>{header}</SidebarHeader>}
 
                 <SidebarContent>
-                    {navGroups.map((group) => (
+                    {resolvedNavGroups.map((group) => (
                         <SidebarGroup key={group.label}>
                             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
                             <SidebarGroupContent>
@@ -141,6 +169,18 @@ export function AppSidebar({
                 <SidebarFooter>
                     {footer}
                     <SidebarMenu>
+                        {isImpersonating && (
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    onClick={() => stopImpersonation()}
+                                    tooltip="Stop Impersonating"
+                                    className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                >
+                                    <UserX className="h-4 w-4" />
+                                    <span>Stop Impersonating</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        )}
                         <SidebarMenuItem>
                             <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
                                 <LogOut className="h-4 w-4" />

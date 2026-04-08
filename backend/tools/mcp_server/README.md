@@ -1,6 +1,6 @@
 # MCP Server
 
-Development MCP server for fullstack-base that provides AI-accessible tools.
+Development MCP server for sieve-onsite that provides AI-accessible tools.
 
 ## Features
 

@@ -14,11 +14,13 @@ import {
     useCreateDatasetVersion,
     Delivery,
     DeliveryStatus,
-} from '@/openapi/sieveBase';
+} from '@/openapi/sieveOnsite';
+import { useCurrentUser } from '@/store/components/authSlice';
 import { Plus, Package, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
+    requested: 'bg-amber-100 text-amber-700',
     draft: 'bg-gray-100 text-gray-700',
     sent_to_customer: 'bg-blue-100 text-blue-700',
     in_review: 'bg-yellow-100 text-yellow-700',
@@ -51,7 +53,7 @@ function DeliveryCard({ delivery, onClick }: { delivery: Delivery; onClick: () =
                             <span className="font-medium truncate">
                                 Delivery #{delivery.id}
                             </span>
-                            <StatusBadge status={delivery.status ?? 'draft'} />
+                            <StatusBadge status={delivery.status ?? 'requested'} />
                         </div>
                         {delivery.customer_request_description && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -71,6 +73,9 @@ function DeliveryCard({ delivery, onClick }: { delivery: Delivery; onClick: () =
 
 export default function DeliveriesPage() {
     const navigate = useNavigate();
+    const currentUser = useCurrentUser();
+    const isCustomer = currentUser?.role === 'customer';
+
     const [createOpen, setCreateOpen] = useState(false);
     const [newDatasetName, setNewDatasetName] = useState('');
     const [newDescription, setNewDescription] = useState('');
@@ -85,7 +90,6 @@ export default function DeliveriesPage() {
     const handleCreate = async () => {
         if (!newDatasetName.trim()) return;
 
-        // Create dataset -> version -> delivery
         const dataset = await createDataset.mutateAsync({ data: { name: newDatasetName } });
         const version = await createDatasetVersion.mutateAsync({
             datasetId: dataset.id,
@@ -96,7 +100,7 @@ export default function DeliveriesPage() {
                 dataset_version_id: version.id,
                 customer_request_description: newDescription || undefined,
                 created_by: 0,
-                status: DeliveryStatus.draft,
+                status: isCustomer ? DeliveryStatus.requested : DeliveryStatus.draft,
             },
         });
 
@@ -108,25 +112,36 @@ export default function DeliveriesPage() {
 
     const isPending = createDataset.isPending || createDatasetVersion.isPending || createDelivery.isPending;
 
+    // Customers: clicking a "requested" delivery just shows it, no deep navigation
+    const handleCardClick = (delivery: Delivery) => {
+        navigate(`/delivery/${delivery.id}`);
+    };
+
     return (
         <AppSidebar>
             <div className="container mx-auto max-w-4xl py-8 px-4">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Deliveries</h1>
+                    <h1 className="text-2xl font-bold">
+                        {isCustomer ? 'My Requests' : 'Deliveries'}
+                    </h1>
                     <Button onClick={() => setCreateOpen(true)}>
                         <Plus className="h-4 w-4 mr-2" />
-                        New Delivery
+                        {isCustomer ? 'Request a New Dataset' : 'New Delivery'}
                     </Button>
                 </div>
 
                 {isLoading ? (
-                    <p className="text-muted-foreground text-center py-12">Loading deliveries...</p>
+                    <p className="text-muted-foreground text-center py-12">Loading...</p>
                 ) : deliveries.length === 0 ? (
                     <div className="text-center py-12">
                         <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">No deliveries yet</p>
+                        <p className="text-muted-foreground mb-2">
+                            {isCustomer ? 'No requests yet' : 'No deliveries yet'}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                            Create a delivery to start sending samples to customers.
+                            {isCustomer
+                                ? 'Request a dataset to get started.'
+                                : 'Create a delivery to start sending samples to customers.'}
                         </p>
                     </div>
                 ) : (
@@ -135,7 +150,7 @@ export default function DeliveriesPage() {
                             <DeliveryCard
                                 key={delivery.id}
                                 delivery={delivery}
-                                onClick={() => navigate(`/delivery/${delivery.id}`)}
+                                onClick={() => handleCardClick(delivery)}
                             />
                         ))}
                     </div>
@@ -145,26 +160,34 @@ export default function DeliveriesPage() {
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Create New Delivery</DialogTitle>
+                        <DialogTitle>
+                            {isCustomer ? 'Request a New Dataset' : 'Create New Delivery'}
+                        </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
                         <div>
-                            <label className="text-sm font-medium mb-1 block">Dataset Name</label>
+                            <label className="text-sm font-medium mb-1 block">
+                                {isCustomer ? 'What do you need?' : 'Dataset Name'}
+                            </label>
                             <Input
-                                placeholder="e.g. Customer X - Face Detection Samples"
+                                placeholder={isCustomer
+                                    ? 'e.g. Full-body videos with face detection'
+                                    : 'e.g. Customer X - Face Detection Samples'}
                                 value={newDatasetName}
                                 onChange={(e) => setNewDatasetName(e.target.value)}
                             />
                         </div>
                         <div>
                             <label className="text-sm font-medium mb-1 block">
-                                Description (optional)
+                                {isCustomer ? 'Additional details' : 'Description (optional)'}
                             </label>
                             <Textarea
-                                placeholder="What is this delivery for?"
+                                placeholder={isCustomer
+                                    ? 'Describe your requirements — resolution, content type, metadata needs, quantity...'
+                                    : 'What is this delivery for?'}
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
-                                rows={3}
+                                rows={4}
                             />
                         </div>
                         <div className="flex justify-end gap-2">
@@ -175,7 +198,7 @@ export default function DeliveriesPage() {
                                 onClick={handleCreate}
                                 disabled={!newDatasetName.trim() || isPending}
                             >
-                                {isPending ? 'Creating...' : 'Create'}
+                                {isPending ? 'Submitting...' : isCustomer ? 'Submit Request' : 'Create'}
                             </Button>
                         </div>
                     </div>

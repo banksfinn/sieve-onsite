@@ -31,7 +31,7 @@ frontend/src/
 │       ├── authSlice.ts    # User state + localStorage
 │       └── snackbarSlice.ts
 ├── openapi/                # [[OpenAPI Type Generation|Auto-generated]]
-│   └── fullstackBase.ts    # API client + React Query hooks
+│   └── sieveBase.ts        # API client + React Query hooks
 ├── hooks/                  # Custom React hooks
 └── lib/                    # Utilities (cn(), etc.)
 ```
@@ -59,7 +59,7 @@ frontend/src/
 
 - **Dev server**: `yarn start` (Vite, port 5173 standalone or 8080 in Docker)
 - **Production**: Multi-stage Docker build → Nginx serving static files
-- **Type generation**: `make sync_openapi` regenerates `openapi/fullstackBase.ts`
+- **Type generation**: `make sync_openapi` regenerates `openapi/sieveBase.ts`
 
 ## See Also
 

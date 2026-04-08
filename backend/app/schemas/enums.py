@@ -12,7 +12,14 @@ class AccessLevel(str, Enum):
     admin = "admin"
 
 
+class DatasetStatus(str, Enum):
+    requested = "requested"
+    initialized = "initialized"
+    active = "active"
+
+
 class DeliveryStatus(str, Enum):
+    requested = "requested"
     draft = "draft"
     sent_to_customer = "sent_to_customer"
     in_review = "in_review"

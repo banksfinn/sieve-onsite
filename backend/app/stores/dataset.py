@@ -13,6 +13,10 @@ from app.blueprints.dataset import (
     DatasetVersionModel,
     DatasetVersionQuery,
     DatasetVersionUpdateRequest,
+    DatasetVersionVideo,
+    DatasetVersionVideoCreateRequest,
+    DatasetVersionVideoModel,
+    DatasetVersionVideoQuery,
 )
 
 
@@ -36,6 +40,8 @@ class DatasetStore(
     def _apply_entity_specific_search(self, query: DatasetQuery, stmt: Select[tuple[DatasetModel]]) -> Select[tuple[DatasetModel]]:
         if query.name:
             stmt = stmt.filter(DatasetModel.name.ilike(f"%{query.name}%"))
+        if query.status:
+            stmt = stmt.filter(DatasetModel.status == query.status)
         return stmt
 
 

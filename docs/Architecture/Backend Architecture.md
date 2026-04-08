@@ -22,7 +22,7 @@ backend/
 │   ├── oauth_manager/      # [[GoogleOAuthClient]] + config
 │   ├── storage_manager/    # [[GCSClient]]
 │   ├── logging_manager/    # structlog wrapper
-│   └── fullstack_types/    # Shared enums, datetime types, pagination
+│   └── sieve_types/        # Shared enums, datetime types, pagination
 └── tools/
     ├── alembic/            # Database migrations
     ├── mcp_server/         # FastMCP dev server
@@ -54,7 +54,7 @@ Key libraries:
 - **[[GoogleOAuthClient|oauth_manager]]** - Google OAuth flow configuration and token exchange
 - **[[GCSClient|storage_manager]]** - Google Cloud Storage operations
 - **logging_manager** - `configure_logging()` and `get_logger()` using structlog
-- **fullstack_types** - `Environment` enum, datetime types, pagination constants
+- **sieve_types** - `Environment` enum, datetime types, pagination constants
 
 ### `tools/` - Development Utilities
 

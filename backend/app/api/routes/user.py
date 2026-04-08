@@ -14,6 +14,6 @@ async def get_me(user: UserDependency) -> User:
 
 @router.post("/refresh", response_model=User)
 async def refresh_token(user: UserDependency, response: Response) -> User:
-    access_token = generate_access_token(user.id)
+    access_token = generate_access_token(user.id, impersonated_by=user.impersonated_by)
     set_access_token_cookie(response, access_token)
     return user

@@ -6,11 +6,11 @@ Local development runs via Docker Compose. Production uses the same images with 
 
 | Service | Image | Port | Purpose |
 |---------|-------|------|---------|
-| `gateway` | `fullstack_backend:latest` | 1301 | [[Backend Architecture|FastAPI]] with hot reload |
+| `gateway` | `sieve_backend:latest` | 1301 | [[Backend Architecture|FastAPI]] with hot reload |
 | `frontend` | Built from `frontend/Dockerfile` | 1300 | Vite dev server |
-| `fullstack_db` | `postgres:16` | 1303 | PostgreSQL database |
-| `migration` | `fullstack_backend:latest` | - | Runs `alembic upgrade head` on startup |
-| `backend_builder` | `fullstack_backend:latest` | - | Builds Python env, then exits |
+| `sieve_db` | `postgres:16` | 1303 | PostgreSQL database |
+| `migration` | `sieve_backend:latest` | - | Runs `alembic upgrade head` on startup |
+| `backend_builder` | `sieve_backend:latest` | - | Builds Python env, then exits |
 
 ## Docker Compose Architecture
 
@@ -29,7 +29,7 @@ volumes:
 - **Driver**: asyncpg (async) via [[DatabaseClient]]
 - **Migrations**: Alembic, auto-run in Docker via `migration` service
 - **Health check**: `pg_isready` with 1s interval
-- **Persistence**: Named volume `fullstack_postgres_data`
+- **Persistence**: Named volume `sieve_postgres_data`
 
 ## Environment Variables
 

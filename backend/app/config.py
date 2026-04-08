@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     TOKEN_KEY_IDENTIFIER: str = os.environ["TOKEN_KEY_IDENTIFIER"]
     TOKEN_SIGNING_SECRET: str = os.environ["TOKEN_SIGNING_SECRET"]
     FRONTEND_URL: str = os.environ.get("FRONTEND_URL", "http://localhost:1300")
+    OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
 
     @property
     def is_deployed(self) -> bool:

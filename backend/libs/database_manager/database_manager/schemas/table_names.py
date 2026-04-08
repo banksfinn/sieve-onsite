@@ -3,6 +3,7 @@ user_table_name = "users"
 # Core domain
 dataset_table_name = "datasets"
 dataset_version_table_name = "dataset_versions"
+dataset_version_video_table_name = "dataset_version_videos"
 video_table_name = "videos"
 clip_table_name = "clips"
 

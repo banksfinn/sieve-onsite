@@ -25,6 +25,7 @@ class User(BaseEntity):
     name: str
     role: str = "customer"
     access_level: str = "regular"
+    impersonated_by: int | None = None
 
 
 class UserCreateRequest(BaseEntityCreateRequest):

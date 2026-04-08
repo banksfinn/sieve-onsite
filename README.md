@@ -1,6 +1,6 @@
-# Fullstack Base
+# Sieve Onsite
 
-A production-ready full stack application template with FastAPI (Python 3.12) backend and React (TypeScript) frontend, featuring automatic type generation from OpenAPI specs.
+Sieve Onsite application with FastAPI (Python 3.12) backend and React (TypeScript) frontend, featuring automatic type generation from OpenAPI specs.
 
 ## Tech Stack
 
@@ -37,8 +37,8 @@ A production-ready full stack application template with FastAPI (Python 3.12) ba
 
 ```bash
 # Clone and setup
-git clone git@github.com:banksfinn/fullstack-base.git
-cd fullstack-base
+git clone git@github.com:banksfinn/sieve-onsite.git
+cd sieve-onsite
 make setup
 
 # Build and run

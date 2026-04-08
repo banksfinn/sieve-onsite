@@ -72,7 +72,7 @@ mcp_server:
 # ------------------------------------------------------------
 # --------------- GCS Bucket Tools ---------------------------
 # ------------------------------------------------------------
-.PHONY: gcs_list, gcs_download, gcs_view
+.PHONY: gcs_list, gcs_download, gcs_view, gcs_generate_metadata
 
 # List bucket contents. Usage: make gcs_list [prefix=videos/]
 gcs_list:
@@ -85,6 +85,14 @@ gcs_download:
 # View videos in browser. Usage: make gcs_view [prefix=videos/]
 gcs_view:
 	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/view_videos.py $(prefix)
+
+# Generate sample clip metadata from bucket videos.
+# Usage: make gcs_generate_metadata [prefix=videos/] [samples=20] [output=sample.json]
+gcs_generate_metadata:
+	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/generate_sample_metadata.py \
+		$(if $(prefix),--prefix $(prefix)) \
+		$(if $(samples),--samples $(samples)) \
+		$(if $(output),--output $(output))
 
 # ------------------------------------------------------------
 # -------------- Database Management -------------------------

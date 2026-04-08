@@ -7,10 +7,11 @@ from app.blueprints.delivery import Delivery, DeliveryCreateRequest, DeliveryQue
 from app.blueprints.delivery_access import DeliveryAccess, DeliveryAccessCreateRequest, DeliveryAccessQuery, DeliveryAccessUpdateRequest
 from app.blueprints.delivery_feedback import DeliveryFeedback, DeliveryFeedbackCreateRequest, DeliveryFeedbackQuery
 from app.blueprints.clip_feedback import ClipFeedback, ClipFeedbackCreateRequest, ClipFeedbackQuery, ClipFeedbackUpdateRequest
+from app.llm.feedback_summarizer import FeedbackSummary, summarize_delivery_feedback
+from app.stores.clip_feedback import clip_feedback_store
 from app.stores.delivery import delivery_store
 from app.stores.delivery_access import delivery_access_store
 from app.stores.delivery_feedback import delivery_feedback_store
-from app.stores.clip_feedback import clip_feedback_store
 
 router = APIRouter()
 
@@ -105,3 +106,13 @@ async def create_clip_feedback(user: UserDependency, delivery_id: int, clip_id: 
 async def update_clip_feedback(user: UserDependency, delivery_id: int, clip_id: int, feedback_id: int, request: ClipFeedbackUpdateRequest):
     request.id = feedback_id
     return await clip_feedback_store.update_entity(request)
+
+
+# --- Feedback Summarization ---
+
+
+@router.post("/{delivery_id}/summarize-feedback", response_model=FeedbackSummary)
+async def summarize_feedback(user: UserDependency, delivery_id: int):
+    """Summarize all clip feedback for a delivery using LLM."""
+    result = await clip_feedback_store.search_entities(ClipFeedbackQuery(delivery_id=delivery_id, limit=10000))
+    return await summarize_delivery_feedback(delivery_id, result.entities)

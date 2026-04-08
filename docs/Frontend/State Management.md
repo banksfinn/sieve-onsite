@@ -45,7 +45,7 @@ new QueryClient({
 
 ### Auto-Generated Hooks
 
-[[OpenAPI Type Generation|Orval]] generates React Query hooks in `src/openapi/fullstackBase.ts`. These provide:
+[[OpenAPI Type Generation|Orval]] generates React Query hooks in `src/openapi/sieveBase.ts`. These provide:
 - Type-safe request parameters
 - Typed response data
 - Loading/error states

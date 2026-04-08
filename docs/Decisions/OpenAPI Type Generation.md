@@ -14,12 +14,12 @@ Frontend TypeScript types and API client hooks are auto-generated from the backe
 
 1. FastAPI generates an OpenAPI spec from route handlers and Pydantic models
 2. `make sync_openapi` runs the Orval codegen tool
-3. Output lands in `frontend/src/openapi/fullstackBase.ts`
+3. Output lands in `frontend/src/openapi/sieveBase.ts`
 4. Frontend imports generated types and React Query hooks
 
 ## Generated Output
 
-`fullstackBase.ts` contains:
+`sieveBase.ts` contains:
 - TypeScript interfaces matching every Pydantic request/response model
 - API client functions using fetch
 - React Query hooks (`useQuery`, `useMutation`) for every endpoint
@@ -27,7 +27,7 @@ Frontend TypeScript types and API client hooks are auto-generated from the backe
 
 ## Rules
 
-- **Never edit `openapi/fullstackBase.ts` manually** - it will be overwritten
+- **Never edit `openapi/sieveBase.ts` manually** - it will be overwritten
 - **Run `make sync_openapi` after any API change** - route additions, schema changes, etc.
 - **Route function names become TypeScript function names** - choose them carefully
 

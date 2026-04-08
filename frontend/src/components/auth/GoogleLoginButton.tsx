@@ -14,7 +14,7 @@
  * ```
  */
 
-import { useGoogleLogin, useRefreshToken } from '@/openapi/fullstackBase';
+import { useGoogleLogin, useRefreshToken } from '@/openapi/sieveOnsite';
 import { setUser } from '@/store/components/authSlice';
 import { useAppDispatch } from '@/store/hooks';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';

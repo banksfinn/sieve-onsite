@@ -19,6 +19,9 @@ async def get_current_user(token: TokenDependency) -> User:
     if not user:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Authentication failed, user not found")
 
+    if access_data.impersonated_by is not None:
+        user.impersonated_by = access_data.impersonated_by
+
     return user
 
 

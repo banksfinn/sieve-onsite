@@ -24,7 +24,7 @@
  * ```
  */
 
-import { refreshToken } from '@/openapi/fullstackBase';
+import { refreshToken } from '@/openapi/sieveOnsite';
 import { clearUser, setUser, useAuthState } from '@/store/components/authSlice';
 import { useAppDispatch } from '@/store/hooks';
 import { ReactNode, useEffect, useRef } from 'react';

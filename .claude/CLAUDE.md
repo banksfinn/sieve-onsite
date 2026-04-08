@@ -35,7 +35,7 @@ See `AGENTS.md` for the complete vault structure and navigation guide.
 
 ## Project Overview
 
-Full stack application template using FastAPI (Python 3.12) backend and React (TypeScript) frontend with automatic type generation from OpenAPI specs.
+Sieve Onsite application using FastAPI (Python 3.12) backend and React (TypeScript) frontend with automatic type generation from OpenAPI specs.
 
 ## Common Commands
 
