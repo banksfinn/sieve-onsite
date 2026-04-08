@@ -1,0 +1,16 @@
+{
+    "name": "Fullstack Base",
+    "short_name": "Fullstack",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "logo.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      }
+    ]
+  }

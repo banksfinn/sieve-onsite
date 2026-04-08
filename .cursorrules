@@ -1,0 +1,47 @@
+# Cursor Rules
+
+This project uses a centralized documentation system in `.ai/notes/`. All detailed guidelines, patterns, and conventions are maintained there.
+
+## Documentation System
+
+**Before working on any file**, check for relevant guidelines:
+
+1. Look at `.ai/notes/` for topic-specific documentation
+2. Each note contains items with enforcement levels:
+   - `locked`: Do not deviate without explicit user approval
+   - `strict`: Follow unless there's a strong reason not to
+   - `recommended`: Preferred approach, alternatives acceptable
+   - `flexible`: Suggestion only
+
+## Available Notes
+
+| Note | Scope |
+|------|-------|
+| `agents.md` | Core AI guidelines (all files) |
+| `backend-structure.md` | Backend architecture & patterns |
+| `frontend-patterns.md` | React/TypeScript patterns |
+| `database-patterns.md` | SQLAlchemy, Pydantic, migrations |
+| `api-patterns.md` | FastAPI routes, OpenAPI |
+| `authentication.md` | Auth flow, UserDependency |
+| `shadcn-ui.md` | shadcn/ui components & theming |
+| `component-library.md` | Available UI components |
+| `docker-infrastructure.md` | Docker & local dev setup |
+
+## Quick Reference
+
+- **Backend**: FastAPI + Python 3.12 in `backend/`
+- **Frontend**: React + TypeScript + Vite in `frontend/`
+- **Database**: PostgreSQL with SQLAlchemy + Alembic
+- **UI Components**: shadcn/ui + TailwindCSS
+- **API Types**: Auto-generated via `make sync_openapi`
+
+## Common Commands
+
+```bash
+make setup              # Initial project setup
+make run                # Run full stack
+make sync_openapi       # Regenerate frontend types from backend
+make db_generate_migration  # Create new database migration
+```
+
+For detailed patterns and conventions, refer to the notes in `.ai/notes/`.

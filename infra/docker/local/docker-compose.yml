@@ -1,0 +1,131 @@
+services:
+  backend_builder:
+    build:
+      context: ../../../backend
+      dockerfile: infra/local.Dockerfile
+    image: fullstack_backend:latest
+    volumes:
+      - ../../../backend:/app/backend
+    env_file:
+      - .env
+    command: ["echo", "build completed"]
+
+  gateway:
+    image: fullstack_backend:latest
+    depends_on:
+      fullstack_db:
+        condition: service_healthy
+      backend_builder:
+        condition: service_completed_successfully
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    command: uvicorn app.gateway:app --reload --reload-dir '.' --port ${GATEWAY_PORT} --host 0.0.0.0
+
+  frontend:
+    build:
+      context: ../../../frontend
+    depends_on:
+      - gateway
+    env_file:
+      - .env
+    command: yarn dev --host
+    ports:
+      - ${FRONTEND_PORT}:8080
+
+  migration:
+    image: fullstack_backend:latest
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+      - ../../../backend/alembic.ini:/app/alembic.ini
+    depends_on:
+      fullstack_db:
+        condition: service_healthy
+      backend_builder:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: alembic -c /app/alembic.ini upgrade head
+
+  fullstack_db:
+    image: postgres:16
+    container_name: fullstack_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      interval: 1s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - fullstack_postgres_data:/var/lib/fullstack_db/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: fullstack_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    image: fullstack_backend:latest
+    depends_on:
+      redis:
+        condition: service_healthy
+      fullstack_db:
+        condition: service_healthy
+      backend_builder:
+        condition: service_completed_successfully
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    environment:
+      - CELERY_WORKER=1
+    command: celery --quiet -A app.worker worker --loglevel=warning
+
+  celery_beat:
+    image: fullstack_backend:latest
+    depends_on:
+      redis:
+        condition: service_healthy
+      fullstack_db:
+        condition: service_healthy
+      backend_builder:
+        condition: service_completed_successfully
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    command: celery -A app.worker beat --loglevel=warning
+
+volumes:
+  fullstack_postgres_data:
+    name: fullstack_postgres_data
+    driver: local

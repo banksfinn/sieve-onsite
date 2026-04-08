@@ -1,0 +1,98 @@
+{
+  "python.autoComplete.extraPaths": [
+    "backend/app",
+    "backend/libs/user_management",
+    "backend/libs/database_manager",
+    "backend/libs/logging_manager",
+    "backend/libs/fullstack_types",
+    "backend/libs/oauth_manager",
+    "backend/libs/locking_manager",
+    "backend/libs/llm_manager",
+    "backend/tools"
+  ],
+  "python.languageServer": "Pylance",
+  "editor.formatOnSave": true,
+  "files.autoSave": "onFocusChange",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.addMissingImports": "always"
+  },
+  "python.analysis.autoImportCompletions": true,
+  "files.exclude": {
+    "**/__pycache__/": true,
+    "**/.ruff_cache/": true,
+    "**/.pytest_cache/": true,
+    "**/.pdm-build/": true,
+    "**/*.egg-info": true,
+    "**/*.pdm-python": true,
+    "**/node_modules/**": true
+  },
+  "editor.guides.indentation": true,
+  "editor.guides.bracketPairs": false,
+
+  // Python formatting with ruff
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "ruff.interpreter": ["${workspaceFolder}/backend/.venv/bin/python"],
+  "ruff.nativeServer": "on",
+
+  // Frontend formatting with prettier
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.autoSearchPaths": true,
+  "cursorpyright.analysis.extraPaths": [
+    "backend/app",
+    "backend/libs/user_management",
+    "backend/libs/database_manager",
+    "backend/libs/logging_manager",
+    "backend/libs/fullstack_types",
+    "backend/libs/oauth_manager",
+    "backend/libs/locking_manager",
+    "backend/libs/llm_manager",
+    "backend/tools"
+  ],
+  "cursorpyright.analysis.typeCheckingMode": "strict",
+  "cSpell.words": [
+    "fastapi",
+    "fastmcp",
+    "loglevel",
+    "Pydantic",
+    "selectinload",
+    "streamable"
+  ],
+  "makefile.configureOnOpen": false,
+}

@@ -1,0 +1,23 @@
+[project]
+name = "locking_manager"
+version = "0.1.0"
+description = "Redis-based distributed locking and Celery task utilities"
+authors = [
+    {name = "Finn", email = "finn@claralabs.com"},
+]
+dependencies = [
+    "redis>=5.0.0",
+    "celery>=5.3.0",
+    "pydantic-settings>=2.6.1",
+    "logging_manager",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+logging_manager = { path = "../logging_manager", editable = true }

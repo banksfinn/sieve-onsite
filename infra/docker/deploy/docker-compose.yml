@@ -1,0 +1,131 @@
+name: todo_deploy
+services:
+  todo_backend_builder:
+    build:
+      context: ../../../backend
+      dockerfile: infra/deploy.Dockerfile
+    image: todo_backend:latest
+    volumes:
+      - ../../../backend:/app/backend
+    env_file:
+      - .env
+    command: ["echo", "build completed"]
+
+  todo_gateway:
+    image: todo_backend:latest
+    depends_on:
+      todo_db:
+        condition: service_healthy
+      todo_backend_builder:
+        condition: service_completed_successfully
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    command: uvicorn app.gateway:app --port ${GATEWAY_PORT} --host 0.0.0.0
+
+  todo_frontend:
+    build:
+      context: ../../../frontend
+    depends_on:
+      - todo_gateway
+    env_file:
+      - .env
+    ports:
+      - ${FRONTEND_PORT}:8080
+
+  todo_migration:
+    image: todo_backend:latest
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+      - ../../../backend/alembic.ini:/app/alembic.ini
+    depends_on:
+      todo_db:
+        condition: service_healthy
+      todo_backend_builder:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command: alembic -c /app/alembic.ini upgrade head
+
+  todo_db:
+    image: postgres:16
+    container_name: todo_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      interval: 1s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - todo_postgres_data:/var/lib/todo_db/data
+
+  todo_redis:
+    image: redis:7-alpine
+    container_name: todo_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+  todo_celery_worker:
+    image: todo_backend:latest
+    depends_on:
+      todo_redis:
+        condition: service_healthy
+      todo_db:
+        condition: service_healthy
+      todo_backend_builder:
+        condition: service_completed_successfully
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    environment:
+      - CELERY_WORKER=1
+    command: celery --quiet -A app.worker worker --loglevel=warning
+
+  todo_celery_beat:
+    image: todo_backend:latest
+    depends_on:
+      todo_redis:
+        condition: service_healthy
+      todo_db:
+        condition: service_healthy
+      todo_backend_builder:
+        condition: service_completed_successfully
+    working_dir: /app
+    volumes:
+      - ../../../backend/app:/app/app
+      - ../../../backend/libs:/app/libs
+      - ../../../backend/tools:/app/tools
+    env_file:
+      - .env
+    command: celery -A app.worker beat --loglevel=warning
+
+volumes:
+  todo_postgres_data:
+    name: todo_postgres_data
+    driver: local

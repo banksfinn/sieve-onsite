@@ -1,0 +1,30 @@
+{
+  "include": ["backend/app", "backend/libs", "backend/tools"],
+  "exclude": [
+    "**/__pycache__",
+    "**/.ruff_cache",
+    "**/.pytest_cache",
+    "**/node_modules",
+    "**/alembic/versions"
+  ],
+  "extraPaths": [
+    "backend/app",
+    "backend/libs/user_management",
+    "backend/libs/database_manager",
+    "backend/libs/logging_manager",
+    "backend/libs/fullstack_types",
+    "backend/libs/oauth_manager",
+    "backend/libs/locking_manager",
+    "backend/libs/notification_manager",
+    "backend/libs/llm_manager",
+    "backend/tools"
+  ],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "strict",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportUnknownMemberType": "error",
+  "reportUnknownVariableType": "error",
+  "reportUnknownParameterType": "error",
+  "reportUnknownArgumentType": "error"
+}

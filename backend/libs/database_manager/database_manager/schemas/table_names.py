@@ -1,0 +1,8 @@
+user_table_name = "users"
+item_table_name = "items"
+todo_table_name = "todos"
+tag_table_name = "tags"
+tag_member_table_name = "tag_members"
+todo_tag_table_name = "todo_tags"
+llm_conversation_message_table_name = "llm_conversation_messages"
+notification_log_table_name = "notification_logs"

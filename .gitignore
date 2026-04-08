@@ -1,0 +1,12 @@
+.DS_Store
+backend/.venv
+infra/docker/local/.env
+infra/docker/deploy/.env
+**/.terraform
+**/__pycache__/**
+**/node_modules/**
+**/generated/**
+*.pyc
+.pdm-python
+**/__pycache__/**
+*.pyc

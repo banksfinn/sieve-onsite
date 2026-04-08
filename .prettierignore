@@ -1,0 +1,2 @@
+# Ignore AI notes - they use special HTML comment markers that shouldn't be reformatted
+.ai/notes/**/*.md
