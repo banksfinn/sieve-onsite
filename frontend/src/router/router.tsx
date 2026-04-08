@@ -3,12 +3,12 @@ import AdminPage from '@/pages/AdminPage';
 import ClipViewerPage from '@/pages/ClipViewerPage';
 import DatasetDetailPage from '@/pages/DatasetDetailPage';
 import DatasetsPage from '@/pages/DatasetsPage';
-import DeliveriesPage from '@/pages/DeliveriesPage';
-import DeliveryDetailPage from '@/pages/DeliveryDetailPage';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import ProfilePage from '@/pages/ProfilePage';
 import RegisterPage from '@/pages/RegisterPage';
+import SeedDatasetPage from '@/pages/SeedDatasetPage';
+import VersionEditorPage from '@/pages/VersionEditorPage';
 
 export default function Router() {
     return (
@@ -17,9 +17,9 @@ export default function Router() {
             <Route path="/home" element={<HomePage />} />
             <Route path="/datasets" element={<DatasetsPage />} />
             <Route path="/dataset/:datasetId" element={<DatasetDetailPage />} />
-            <Route path="/deliveries" element={<DeliveriesPage />} />
-            <Route path="/delivery/:deliveryId" element={<DeliveryDetailPage />} />
-            <Route path="/delivery/:deliveryId/clip/:clipId" element={<ClipViewerPage />} />
+            <Route path="/dataset/:datasetId/version/:versionId/edit" element={<VersionEditorPage />} />
+            <Route path="/dataset/:datasetId/version/:versionId/clip/:clipId" element={<ClipViewerPage />} />
+            <Route path="/tools/seed-dataset" element={<SeedDatasetPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/profile" element={<ProfilePage />} />

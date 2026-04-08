@@ -16,7 +16,8 @@ class ClipFeedbackModel(BaseEntityModel):
     __tablename__ = clip_feedback_table_name
 
     clip_id: Mapped[int] = mapped_column(Integer, ForeignKey("clips.id"), nullable=False)
-    delivery_id: Mapped[int] = mapped_column(Integer, ForeignKey("deliveries.id"), nullable=False)
+    dataset_id: Mapped[int] = mapped_column(Integer, ForeignKey("datasets.id"), nullable=False)
+    dataset_version_id: Mapped[int] = mapped_column(Integer, ForeignKey("dataset_versions.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     rating: Mapped[str] = mapped_column(String, nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -31,7 +32,8 @@ class ClipFeedbackModel(BaseEntityModel):
 
 class ClipFeedback(BaseEntity):
     clip_id: int
-    delivery_id: int
+    dataset_id: int
+    dataset_version_id: int
     user_id: int
     rating: ClipRating
     comment: str | None = None
@@ -43,7 +45,8 @@ class ClipFeedback(BaseEntity):
 
 class ClipFeedbackCreateRequest(BaseEntityCreateRequest):
     clip_id: int
-    delivery_id: int
+    dataset_id: int
+    dataset_version_id: int
     user_id: int
     rating: ClipRating
     comment: str | None = None
@@ -60,6 +63,7 @@ class ClipFeedbackUpdateRequest(BaseEntityUpdateRequest):
 
 class ClipFeedbackQuery(BaseEntityQuery):
     clip_id: int | None = None
-    delivery_id: int | None = None
+    dataset_id: int | None = None
+    dataset_version_id: int | None = None
     user_id: int | None = None
     is_resolved: bool | None = None

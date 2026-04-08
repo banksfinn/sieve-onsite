@@ -24,5 +24,8 @@ def require_admin(user: UserDependency) -> User:
 
 
 AdminDependency = Annotated[User, Depends(require_admin)]
+CustomerDependency = Annotated[User, Depends(require_role(UserRole.customer))]
+GtmDependency = Annotated[User, Depends(require_role(UserRole.gtm))]
+ResearchDependency = Annotated[User, Depends(require_role(UserRole.researcher))]
 GtmOrResearchDependency = Annotated[User, Depends(require_role(UserRole.gtm, UserRole.researcher))]
 InternalDependency = Annotated[User, Depends(require_role(UserRole.gtm, UserRole.researcher))]

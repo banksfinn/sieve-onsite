@@ -42,7 +42,8 @@ See [[User Roles and Access]] for the underlying role/access level model.
 1. GTM navigates to "New Request" form
 2. Selects an **existing customer** from the system (customer must already have an account)
 3. Fills in dataset requirements on behalf of the customer
-4. Submits — creates the Dataset and assigns both the customer and the GTM to it
+4. Optionally provides GCS bucket path + video metadata to auto-initialize (skips `requested` state)
+5. Submits — creates the Dataset and assigns both the customer and the GTM to it
 
 ### Assign Researchers
 1. From a dataset detail page, GTM can assign one or more researchers
@@ -68,6 +69,14 @@ See [[User Roles and Access]] for the underlying role/access level model.
 1. Researcher can browse available datasets and assign themselves
 2. Creates a DatasetAssignment with `role = "researcher"`
 3. Dataset appears in their inbox after assignment
+
+### Initialize a Dataset
+1. From a dataset in `requested` status, researcher clicks "Initialize"
+2. Provides GCS bucket path (e.g., `gs://product-onsite/customer-a`)
+3. Uploads video metadata JSON listing the source videos
+4. System creates version 0 with video references (no clips yet)
+5. Dataset status advances to `initialized`
+6. See [[Dataset Lifecycle]] for version 0 vs version 1+
 
 ### Create a New Version
 1. From a dataset detail page, researcher clicks "Create New Version"
@@ -120,18 +129,27 @@ See [[User Roles and Access]] for the underlying role/access level model.
 4. JWT cookie is set, session begins
 
 ### Dataset Lifecycle (Handoff Flow) {#dataset-lifecycle}
-1. **Customer** submits a dataset request themselves, or **GTM** creates one on behalf of a customer (customer must exist first)
+1. **Customer** submits a dataset request, or **GTM** creates one on behalf of a customer (customer must exist first). GTM can optionally provide bucket path + video metadata to auto-initialize.
 2. **GTM** assigns themselves as lead and assigns one or more researchers
-3. **Researcher** creates versions, iterates on the dataset
-4. **GTM and/or Researcher** review versions, provide feedback
-5. **Researcher** iterates based on feedback, creates new versions
-6. **GTM or Researcher** advances status to ready_for_approval
-7. **GTM** approves a version and marks it for delivery to customer
+3. **Researcher** initializes the dataset (bucket path + video metadata → version 0 with source videos)
+4. **Researcher** uploads clip metadata → version 1+ with clips, dataset becomes `active`
+5. **GTM and/or Researcher** review versions, provide feedback
+6. **Researcher** iterates based on feedback, creates new versions
+7. **GTM or Researcher** creates a Delivery from a version and advances it through the delivery workflow
 8. **Customer** reviews the delivery, provides feedback or approves
-9. Loop back to step 5 if changes needed
+9. Loop back to step 6 if changes needed
 
-### Dataset Status Transitions
-Both **GTM** and **Researcher** roles can advance dataset status. The available statuses are defined in `DeliveryStatus`:
+### Dataset Status Transitions (Ingestion Lifecycle)
+`DatasetStatus` tracks whether the dataset has data:
+
+```
+requested -> initialized -> active
+```
+
+See [[Dataset Lifecycle]] for full details on each state and version 0 vs version 1+.
+
+### Delivery Status Transitions (Review Workflow)
+`DeliveryStatus` tracks the customer review process on a specific version:
 
 ```
 draft -> sent_to_customer -> in_review -> feedback_received -> iterating -> ready_for_approval -> approved

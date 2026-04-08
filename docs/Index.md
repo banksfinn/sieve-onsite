@@ -26,6 +26,7 @@ Full-stack application for GTM-Engineering video sample review collaboration. Bu
 - [[User Model]] - User entity with role and access level
 - [[User Roles and Access]] - Role system (customer/gtm/researcher), access levels, invitations
 - [[Domain Models]] - Dataset, Video, Clip, Delivery, Feedback entities and relationships
+- [[Dataset Lifecycle]] - Dataset status machine (requested -> initialized -> active) and version 0 concept
 
 ## API
 

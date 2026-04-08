@@ -31,10 +31,6 @@ class VideoStore(
     def _apply_entity_specific_search(self, query: VideoQuery, stmt: Select[tuple[VideoModel]]) -> Select[tuple[VideoModel]]:
         if query.delivery_id:
             stmt = stmt.filter(VideoModel.delivery_id == query.delivery_id)
-        if query.source:
-            stmt = stmt.filter(VideoModel.source == query.source)
-        if query.language:
-            stmt = stmt.filter(VideoModel.language == query.language)
         return stmt
 
 

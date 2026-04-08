@@ -1,11 +1,24 @@
+import json
+
 from google.cloud import storage
+from google.oauth2 import service_account
 
 from storage_manager.core.settings import storage_manager_settings
 
 
+def _build_storage_client() -> storage.Client:
+    """Build a GCS client, preferring in-memory credentials from GCS_CREDENTIALS_JSON."""
+    creds_json = storage_manager_settings.GCS_CREDENTIALS_JSON
+    if creds_json:
+        info = json.loads(creds_json)
+        credentials = service_account.Credentials.from_service_account_info(info)
+        return storage.Client(credentials=credentials, project=info.get("project_id"))
+    return storage.Client()
+
+
 class GCSClient:
     def __init__(self, bucket_name: str | None = None):
-        self._storage_client = storage.Client()
+        self._storage_client = _build_storage_client()
         self._bucket_name = bucket_name or storage_manager_settings.GCS_BUCKET_NAME
         self._bucket = self._storage_client.bucket(self._bucket_name)
 

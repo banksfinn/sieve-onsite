@@ -155,30 +155,12 @@ function ClipViewer({
                     <span className="text-muted-foreground">Time Range</span>
                     <p className="font-medium">{clip.start_time.toFixed(2)}s - {clip.end_time.toFixed(2)}s</p>
                 </div>
-                {clip.avg_face_size != null && (
-                    <div className="bg-muted/50 rounded p-2">
-                        <span className="text-muted-foreground">Avg Face Size</span>
-                        <p className="font-medium">{clip.avg_face_size}</p>
+                {clip.extra_metadata && Object.entries(clip.extra_metadata).map(([key, value]) => (
+                    <div key={key} className="bg-muted/50 rounded p-2">
+                        <span className="text-muted-foreground">{key.replace(/_/g, ' ')}</span>
+                        <p className="font-medium">{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</p>
                     </div>
-                )}
-                {clip.max_num_faces != null && (
-                    <div className="bg-muted/50 rounded p-2">
-                        <span className="text-muted-foreground">Max Faces</span>
-                        <p className="font-medium">{clip.max_num_faces}</p>
-                    </div>
-                )}
-                {clip.is_full_body != null && (
-                    <div className="bg-muted/50 rounded p-2">
-                        <span className="text-muted-foreground">Full Body</span>
-                        <p className="font-medium">{clip.is_full_body ? 'Yes' : 'No'}</p>
-                    </div>
-                )}
-                {clip.has_overlay != null && (
-                    <div className="bg-muted/50 rounded p-2">
-                        <span className="text-muted-foreground">Has Overlay</span>
-                        <p className="font-medium">{clip.has_overlay ? 'Yes' : 'No'}</p>
-                    </div>
-                )}
+                ))}
             </div>
 
             {/* Feedback form */}

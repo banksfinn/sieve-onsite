@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppSidebar } from '@/components/common';
@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import {
     useGetClip,
+    useGetDataset,
     useSearchClipFeedback,
     useCreateClipFeedback,
     useUpdateClipFeedback,
     useSearchDatasetVersions,
-    useGetDelivery,
     ClipFeedback,
     ClipRating,
     DatasetVersion,
@@ -35,11 +35,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const METADATA_FIELDS = [
-    { key: 'avg_face_size', label: 'Avg Face Size' },
-    { key: 'max_num_faces', label: 'Max Faces' },
-    { key: 'is_full_body', label: 'Full Body' },
-    { key: 'has_overlay', label: 'Has Overlay' },
+const COMMON_METADATA_FIELDS = [
     { key: 'duration', label: 'Duration' },
     { key: 'start_time', label: 'Start Time' },
     { key: 'end_time', label: 'End Time' },
@@ -66,7 +62,7 @@ function MetadataPanel({
     onFieldClick,
     highlightedField,
 }: {
-    clip: { avg_face_size?: number | null; max_num_faces?: number | null; is_full_body?: boolean | null; has_overlay?: boolean | null; duration: number; start_time: number; end_time: number };
+    clip: { duration: number; start_time: number; end_time: number; extra_metadata?: Record<string, unknown> | null };
     currentTime: number;
     clipStartTime: number;
     onFieldClick: (field: string) => void;
@@ -100,13 +96,13 @@ function MetadataPanel({
 
             <Separator />
 
-            {/* Metadata fields */}
+            {/* Common fields */}
             <div className="space-y-1">
-                {METADATA_FIELDS.map(({ key, label }) => {
+                {COMMON_METADATA_FIELDS.map(({ key, label }) => {
                     const value = clip[key as keyof typeof clip];
                     if (value === null || value === undefined) return null;
                     const isHighlighted = highlightedField === key;
-                    const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : typeof value === 'number' ? value.toFixed(2) : String(value);
+                    const displayValue = typeof value === 'number' ? value.toFixed(2) : String(value);
 
                     return (
                         <button
@@ -127,6 +123,38 @@ function MetadataPanel({
                     );
                 })}
             </div>
+
+            {/* Extra metadata from JSONB */}
+            {clip.extra_metadata && Object.keys(clip.extra_metadata).length > 0 && (
+                <>
+                    <Separator />
+                    <div className="space-y-1">
+                        {Object.entries(clip.extra_metadata).map(([key, value]) => {
+                            if (value === null || value === undefined) return null;
+                            const isHighlighted = highlightedField === key;
+                            const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : typeof value === 'number' ? value.toFixed(2) : String(value);
+
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => onFieldClick(key)}
+                                    className={cn(
+                                        'w-full flex items-center justify-between p-2 rounded text-sm transition-colors',
+                                        isHighlighted
+                                            ? 'bg-primary/10 ring-1 ring-primary/30'
+                                            : 'hover:bg-muted/80'
+                                    )}
+                                >
+                                    <span className="text-muted-foreground">{key.replace(/_/g, ' ')}</span>
+                                    <span className={cn('font-mono font-medium', isHighlighted && 'text-primary')}>
+                                        {displayValue}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -160,7 +188,7 @@ function FeedbackItem({
                     {feedback.metadata_field && (
                         <Badge variant="secondary" className="text-xs">
                             <Tag className="h-3 w-3 mr-1" />
-                            {METADATA_FIELDS.find(f => f.key === feedback.metadata_field)?.label ?? feedback.metadata_field}
+                            {feedback.metadata_field.replace(/_/g, ' ')}
                         </Badge>
                     )}
                 </div>
@@ -200,26 +228,26 @@ function FeedbackItem({
 
 // --- Feedback Form ---
 function FeedbackForm({
-    deliveryId,
+    datasetId,
+    versionId,
     clipId,
     currentTime,
     selectedField,
     onSubmitted,
+    metadataFields = [],
 }: {
-    deliveryId: number;
+    datasetId: number;
+    versionId: number;
     clipId: number;
     currentTime: number;
     selectedField: string | null;
     onSubmitted: () => void;
+    metadataFields?: string[];
 }) {
     const [rating, setRating] = useState<ClipRating | null>(null);
     const [comment, setComment] = useState('');
     const [capturedTime, setCapturedTime] = useState<number | null>(null);
     const [attachField, setAttachField] = useState(selectedField);
-
-    useEffect(() => {
-        setAttachField(selectedField);
-    }, [selectedField]);
 
     const createFeedback = useCreateClipFeedback();
 
@@ -227,11 +255,13 @@ function FeedbackForm({
         if (!rating) return;
         createFeedback.mutate(
             {
-                deliveryId,
+                datasetId,
+                versionId,
                 clipId,
                 data: {
                     clip_id: clipId,
-                    delivery_id: deliveryId,
+                    dataset_id: datasetId,
+                    dataset_version_id: versionId,
                     user_id: 0,
                     rating,
                     comment: comment || undefined,
@@ -301,8 +331,11 @@ function FeedbackForm({
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="">None</SelectItem>
-                    {METADATA_FIELDS.map(({ key, label }) => (
+                    {COMMON_METADATA_FIELDS.map(({ key, label }) => (
                         <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                    {metadataFields.map((key) => (
+                        <SelectItem key={key} value={key}>{key.replace(/_/g, ' ')}</SelectItem>
                     ))}
                 </SelectContent>
             </Select>
@@ -436,31 +469,27 @@ function VersionSelector({
 
 // --- Main Page ---
 export default function ClipViewerPage() {
-    const { deliveryId, clipId } = useParams<{ deliveryId: string; clipId: string }>();
+    const { datasetId, versionId, clipId } = useParams<{ datasetId: string; versionId: string; clipId: string }>();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    const dId = Number(deliveryId);
+    const dsId = Number(datasetId);
+    const verIdNum = Number(versionId);
     const cId = Number(clipId);
 
     const [currentTime, setCurrentTime] = useState(0);
     const [highlightedField, setHighlightedField] = useState<string | null>(null);
     const [showResolved, setShowResolved] = useState(false);
 
-    const { data: delivery } = useGetDelivery(dId);
+    const { data: dataset } = useGetDataset(dsId);
     const { data: clip } = useGetClip(cId);
 
-    // Fetch versions for the dataset this clip belongs to
-    // useSearchDatasetVersions takes datasetId as first param
-    const { data: versionsResponse } = useSearchDatasetVersions(
-        clip?.dataset_version_id ?? 0,
-        { query: { enabled: !!clip } }
-    );
+    const { data: versionsResponse } = useSearchDatasetVersions(dsId);
     const versions = (versionsResponse as { entities: DatasetVersion[] } | undefined)?.entities ?? [];
 
-    // Feedback for this clip in this delivery
-    const { data: feedbackResponse } = useSearchClipFeedback(dId, cId);
+    // Feedback for this clip in this dataset version
+    const { data: feedbackResponse } = useSearchClipFeedback(dsId, verIdNum, cId);
     const allFeedback = (feedbackResponse as { entities: ClipFeedback[] } | undefined)?.entities ?? [];
     const filteredFeedback = showResolved ? allFeedback : allFeedback.filter((f) => !f.is_resolved);
 
@@ -483,18 +512,19 @@ export default function ClipViewerPage() {
     const handleResolve = (feedbackId: number) => {
         updateFeedback.mutate(
             {
-                deliveryId: dId,
+                datasetId: dsId,
+                versionId: verIdNum,
                 clipId: cId,
                 feedbackId,
                 data: {
                     id: feedbackId,
                     is_resolved: true,
-                    resolved_in_version_id: clip?.dataset_version_id ?? undefined,
+                    resolved_in_version_id: verIdNum,
                 },
             },
             {
                 onSuccess: () => {
-                    queryClient.invalidateQueries({ queryKey: getSearchClipFeedbackQueryKey(dId, cId) });
+                    queryClient.invalidateQueries({ queryKey: getSearchClipFeedbackQueryKey(dsId, verIdNum, cId) });
                 },
             }
         );
@@ -505,7 +535,7 @@ export default function ClipViewerPage() {
     };
 
     const invalidateFeedback = () => {
-        queryClient.invalidateQueries({ queryKey: getSearchClipFeedbackQueryKey(dId, cId) });
+        queryClient.invalidateQueries({ queryKey: getSearchClipFeedbackQueryKey(dsId, verIdNum, cId) });
     };
 
     const unresolvedCount = allFeedback.filter((f) => !f.is_resolved).length;
@@ -530,23 +560,24 @@ export default function ClipViewerPage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/delivery/${deliveryId}`)}
+                            onClick={() => navigate(`/dataset/${dsId}/version/${verIdNum}/edit`)}
                         >
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <div>
                             <h1 className="text-lg font-semibold">Clip #{clipId}</h1>
                             <p className="text-xs text-muted-foreground">
-                                Delivery #{deliveryId}
-                                {delivery?.customer_request_description && ` — ${delivery.customer_request_description}`}
+                                {dataset?.name ?? `Dataset #${dsId}`}
+                                {' · '}
+                                v{versions.find((v) => v.id === verIdNum)?.version_number ?? '?'}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <VersionSelector
                             versions={versions}
-                            currentVersionId={clip.dataset_version_id}
-                            onSelect={() => {/* TODO: navigate to same clip in different version */}}
+                            currentVersionId={verIdNum}
+                            onSelect={(newVersionId) => navigate(`/dataset/${dsId}/version/${newVersionId}/clip/${cId}`)}
                         />
                         <div className="flex items-center gap-2 text-xs">
                             <span className="text-muted-foreground">{unresolvedCount} open</span>
@@ -631,11 +662,13 @@ export default function ClipViewerPage() {
 
                             {/* Inline feedback form */}
                             <FeedbackForm
-                                deliveryId={dId}
+                                datasetId={dsId}
+                                versionId={verIdNum}
                                 clipId={cId}
                                 currentTime={currentTime + clip.start_time}
                                 selectedField={highlightedField}
                                 onSubmitted={invalidateFeedback}
+                                metadataFields={clip.extra_metadata ? Object.keys(clip.extra_metadata) : []}
                             />
                         </div>
                     </div>

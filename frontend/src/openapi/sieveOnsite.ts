@@ -44,6 +44,11 @@ export interface BaseEntitySearchResponseDatasetAssignment {
     metadata: SearchResponseMetadata;
 }
 
+export interface BaseEntitySearchResponseDatasetVersionVideo {
+    entities: DatasetVersionVideo[];
+    metadata: SearchResponseMetadata;
+}
+
 export interface BaseEntitySearchResponseDatasetVersion {
     entities: DatasetVersion[];
     metadata: SearchResponseMetadata;
@@ -84,13 +89,9 @@ export interface BaseEntitySearchResponseVideo {
     metadata: SearchResponseMetadata;
 }
 
-export type ClipAvgFaceSize = number | null;
+export type ClipExtraMetadataAnyOf = { [key: string]: unknown };
 
-export type ClipMaxNumFaces = number | null;
-
-export type ClipIsFullBody = boolean | null;
-
-export type ClipHasOverlay = boolean | null;
+export type ClipExtraMetadata = ClipExtraMetadataAnyOf | null;
 
 export interface Clip {
     id: number;
@@ -102,19 +103,12 @@ export interface Clip {
     start_time: number;
     end_time: number;
     duration: number;
-    avg_face_size?: ClipAvgFaceSize;
-    max_num_faces?: ClipMaxNumFaces;
-    is_full_body?: ClipIsFullBody;
-    has_overlay?: ClipHasOverlay;
+    extra_metadata?: ClipExtraMetadata;
 }
 
-export type ClipCreateRequestAvgFaceSize = number | null;
+export type ClipCreateRequestExtraMetadataAnyOf = { [key: string]: unknown };
 
-export type ClipCreateRequestMaxNumFaces = number | null;
-
-export type ClipCreateRequestIsFullBody = boolean | null;
-
-export type ClipCreateRequestHasOverlay = boolean | null;
+export type ClipCreateRequestExtraMetadata = ClipCreateRequestExtraMetadataAnyOf | null;
 
 export interface ClipCreateRequest {
     video_id: number;
@@ -123,10 +117,7 @@ export interface ClipCreateRequest {
     start_time: number;
     end_time: number;
     duration: number;
-    avg_face_size?: ClipCreateRequestAvgFaceSize;
-    max_num_faces?: ClipCreateRequestMaxNumFaces;
-    is_full_body?: ClipCreateRequestIsFullBody;
-    has_overlay?: ClipCreateRequestHasOverlay;
+    extra_metadata?: ClipCreateRequestExtraMetadata;
 }
 
 export type ClipFeedbackComment = string | null;
@@ -142,7 +133,8 @@ export interface ClipFeedback {
     created_at: string;
     updated_at: string;
     clip_id: number;
-    delivery_id: number;
+    dataset_id: number;
+    dataset_version_id: number;
     user_id: number;
     rating: ClipRating;
     comment?: ClipFeedbackComment;
@@ -160,7 +152,8 @@ export type ClipFeedbackCreateRequestMetadataField = string | null;
 
 export interface ClipFeedbackCreateRequest {
     clip_id: number;
-    delivery_id: number;
+    dataset_id: number;
+    dataset_version_id: number;
     user_id: number;
     rating: ClipRating;
     comment?: ClipFeedbackCreateRequestComment;
@@ -184,24 +177,17 @@ export interface ClipFeedbackUpdateRequest {
     is_resolved?: ClipFeedbackUpdateRequestIsResolved;
 }
 
-export type ClipMetadataEntryAvgFaceSize = number | null;
+export type ClipMetadataEntryExtraMetadataAnyOf = { [key: string]: unknown };
 
-export type ClipMetadataEntryMaxNumFaces = number | null;
-
-export type ClipMetadataEntryIsFullBody = boolean | null;
-
-export type ClipMetadataEntryHasOverlay = boolean | null;
+export type ClipMetadataEntryExtraMetadata = ClipMetadataEntryExtraMetadataAnyOf | null;
 
 export interface ClipMetadataEntry {
-    delivery_id: string;
+    video_id: string;
     uri: string;
     clip_start_time: number;
     clip_end_time: number;
     clip_duration: number;
-    avg_face_size?: ClipMetadataEntryAvgFaceSize;
-    max_num_faces?: ClipMetadataEntryMaxNumFaces;
-    is_full_body?: ClipMetadataEntryIsFullBody;
-    has_overlay?: ClipMetadataEntryHasOverlay;
+    extra_metadata?: ClipMetadataEntryExtraMetadata;
 }
 
 export type ClipQueryVideoId = number | null;
@@ -233,7 +219,18 @@ export interface CreateFakeUserRequest {
     access_level?: AccessLevel;
 }
 
+export interface CreateVersionFromClipsRequest {
+    clip_ids: number[];
+}
+
+export interface CreateVersionFromClipsResponse {
+    version: DatasetVersion;
+    clips_created: number;
+}
+
 export type DatasetDescription = string | null;
+
+export type DatasetBucketPath = string | null;
 
 export interface Dataset {
     id: number;
@@ -241,6 +238,8 @@ export interface Dataset {
     updated_at: string;
     name: string;
     description?: DatasetDescription;
+    status?: string;
+    bucket_path?: DatasetBucketPath;
 }
 
 export interface DatasetAssignment {
@@ -274,14 +273,45 @@ export interface DatasetAssignmentQuery {
     role?: DatasetAssignmentQueryRole;
 }
 
-export type DatasetCreateRequestDescription = string | null;
+export type DatasetCreateFromBucketRequestDescription = string | null;
 
-export interface DatasetCreateRequest {
+export type DatasetCreateFromBucketRequestBucketPath = string | null;
+
+export type DatasetCreateFromBucketRequestClipMetadata = ClipMetadataEntry[] | null;
+
+export interface DatasetCreateFromBucketRequest {
     name: string;
-    description?: DatasetCreateRequestDescription;
+    description?: DatasetCreateFromBucketRequestDescription;
+    bucket_path?: DatasetCreateFromBucketRequestBucketPath;
+    clip_metadata?: DatasetCreateFromBucketRequestClipMetadata;
+}
+
+export type DatasetCreateResponseVersion = DatasetVersion | null;
+
+export interface DatasetCreateResponse {
+    dataset: Dataset;
+    version?: DatasetCreateResponseVersion;
+    videos_created?: number;
+    clips_created?: number;
+}
+
+export type DatasetIngestRequestClipMetadata = ClipMetadataEntry[] | null;
+
+export interface DatasetIngestRequest {
+    bucket_path: string;
+    clip_metadata?: DatasetIngestRequestClipMetadata;
+}
+
+export interface DatasetIngestResponse {
+    dataset: Dataset;
+    version: DatasetVersion;
+    videos_created: number;
+    clips_created: number;
 }
 
 export type DatasetQueryName = string | null;
+
+export type DatasetQueryStatus = string | null;
 
 export interface DatasetQuery {
     limit?: number;
@@ -289,16 +319,23 @@ export interface DatasetQuery {
     sort_by?: string;
     sort_order?: SortOrder;
     name?: DatasetQueryName;
+    status?: DatasetQueryStatus;
 }
 
 export type DatasetUpdateRequestName = string | null;
 
 export type DatasetUpdateRequestDescription = string | null;
 
+export type DatasetUpdateRequestStatus = string | null;
+
+export type DatasetUpdateRequestBucketPath = string | null;
+
 export interface DatasetUpdateRequest {
     id: number;
     name?: DatasetUpdateRequestName;
     description?: DatasetUpdateRequestDescription;
+    status?: DatasetUpdateRequestStatus;
+    bucket_path?: DatasetUpdateRequestBucketPath;
 }
 
 export type DatasetVersionParentVersionId = number | null;
@@ -313,24 +350,12 @@ export interface DatasetVersion {
     created_by: number;
 }
 
-export type DatasetVersionCreateRequestParentVersionId = number | null;
-
-export interface DatasetVersionCreateRequest {
-    dataset_id: number;
-    version_number: number;
-    parent_version_id?: DatasetVersionCreateRequestParentVersionId;
-    created_by: number;
-}
-
-export interface DatasetVersionUploadRequest {
-    clips: ClipMetadataEntry[];
-    videos?: VideoMetadataEntry[];
-}
-
-export interface DatasetVersionUploadResponse {
-    version: DatasetVersion;
-    clips_created: number;
-    videos_created: number;
+export interface DatasetVersionVideo {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    dataset_version_id: number;
+    video_id: number;
 }
 
 export type DeliveryCustomerRequestDescription = string | null;
@@ -458,7 +483,7 @@ export interface DeliveryUpdateRequest {
 }
 
 export interface FeedbackSummary {
-    delivery_id: number;
+    dataset_id: number;
     total_feedback_count: number;
     summary: string;
 }
@@ -598,9 +623,9 @@ export type VideoHeight = number | null;
 
 export type VideoWidth = number | null;
 
-export type VideoSource = string | null;
+export type VideoExtraMetadataAnyOf = { [key: string]: unknown };
 
-export type VideoLanguage = string | null;
+export type VideoExtraMetadata = VideoExtraMetadataAnyOf | null;
 
 export interface Video {
     id: number;
@@ -611,8 +636,7 @@ export interface Video {
     fps?: VideoFps;
     height?: VideoHeight;
     width?: VideoWidth;
-    source?: VideoSource;
-    language?: VideoLanguage;
+    extra_metadata?: VideoExtraMetadata;
 }
 
 export type VideoCreateRequestFps = number | null;
@@ -621,9 +645,9 @@ export type VideoCreateRequestHeight = number | null;
 
 export type VideoCreateRequestWidth = number | null;
 
-export type VideoCreateRequestSource = string | null;
+export type VideoCreateRequestExtraMetadataAnyOf = { [key: string]: unknown };
 
-export type VideoCreateRequestLanguage = string | null;
+export type VideoCreateRequestExtraMetadata = VideoCreateRequestExtraMetadataAnyOf | null;
 
 export interface VideoCreateRequest {
     delivery_id: string;
@@ -631,34 +655,10 @@ export interface VideoCreateRequest {
     fps?: VideoCreateRequestFps;
     height?: VideoCreateRequestHeight;
     width?: VideoCreateRequestWidth;
-    source?: VideoCreateRequestSource;
-    language?: VideoCreateRequestLanguage;
-}
-
-export type VideoMetadataEntryFps = number | null;
-
-export type VideoMetadataEntryHeight = number | null;
-
-export type VideoMetadataEntryWidth = number | null;
-
-export type VideoMetadataEntrySource = string | null;
-
-export type VideoMetadataEntryLanguage = string | null;
-
-export interface VideoMetadataEntry {
-    delivery_id: string;
-    fps?: VideoMetadataEntryFps;
-    height?: VideoMetadataEntryHeight;
-    width?: VideoMetadataEntryWidth;
-    source?: VideoMetadataEntrySource;
-    language?: VideoMetadataEntryLanguage;
+    extra_metadata?: VideoCreateRequestExtraMetadata;
 }
 
 export type VideoQueryDeliveryId = string | null;
-
-export type VideoQuerySource = string | null;
-
-export type VideoQueryLanguage = string | null;
 
 export interface VideoQuery {
     limit?: number;
@@ -666,8 +666,119 @@ export interface VideoQuery {
     sort_by?: string;
     sort_order?: SortOrder;
     delivery_id?: VideoQueryDeliveryId;
-    source?: VideoQuerySource;
-    language?: VideoQueryLanguage;
+}
+
+/**
+ * @summary List All Users
+ */
+export const listAllUsers = (userQuery: UserQuery, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseUser>({
+        url: `/api/gateway/user/all`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+    });
+};
+
+export const getListAllUsersQueryKey = (userQuery?: UserQuery) => {
+    return [`/api/gateway/user/all`, userQuery] as const;
+};
+
+export const getListAllUsersQueryOptions = <
+    TData = Awaited<ReturnType<typeof listAllUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllUsers>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getListAllUsersQueryKey(userQuery);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllUsers>>> = ({ signal }) =>
+        listAllUsers(userQuery, signal);
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof listAllUsers>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type ListAllUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listAllUsers>>>;
+export type ListAllUsersQueryError = HTTPValidationError;
+
+export function useListAllUsers<
+    TData = Awaited<ReturnType<typeof listAllUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllUsers>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listAllUsers>>,
+                    TError,
+                    Awaited<ReturnType<typeof listAllUsers>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListAllUsers<
+    TData = Awaited<ReturnType<typeof listAllUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllUsers>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listAllUsers>>,
+                    TError,
+                    Awaited<ReturnType<typeof listAllUsers>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useListAllUsers<
+    TData = Awaited<ReturnType<typeof listAllUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllUsers>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary List All Users
+ */
+
+export function useListAllUsers<
+    TData = Awaited<ReturnType<typeof listAllUsers>>,
+    TError = HTTPValidationError,
+>(
+    userQuery: UserQuery,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllUsers>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getListAllUsersQueryOptions(userQuery, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
 }
 
 /**
@@ -921,14 +1032,24 @@ export function useSearchDatasets<
 }
 
 /**
+ * Create a dataset. If bucket_path is provided, ingest metadata from GCS.
+
+With bucket_path: fetches metadata, creates version 1 (clips),
+sets status to active. Without bucket_path: creates dataset in requested status.
+
+Only GTM and customer roles can create datasets. Researchers cannot.
+The creator is auto-assigned: GTM as gtm_lead, customer as customer.
  * @summary Create Dataset
  */
-export const createDataset = (datasetCreateRequest: DatasetCreateRequest, signal?: AbortSignal) => {
-    return customAxios<Dataset>({
+export const createDataset = (
+    datasetCreateFromBucketRequest: DatasetCreateFromBucketRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DatasetCreateResponse>({
         url: `/api/gateway/dataset`,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        data: datasetCreateRequest,
+        data: datasetCreateFromBucketRequest,
         signal,
     });
 };
@@ -940,13 +1061,13 @@ export const getCreateDatasetMutationOptions = <
     mutation?: UseMutationOptions<
         Awaited<ReturnType<typeof createDataset>>,
         TError,
-        { data: DatasetCreateRequest },
+        { data: DatasetCreateFromBucketRequest },
         TContext
     >;
 }): UseMutationOptions<
     Awaited<ReturnType<typeof createDataset>>,
     TError,
-    { data: DatasetCreateRequest },
+    { data: DatasetCreateFromBucketRequest },
     TContext
 > => {
     const mutationKey = ['createDataset'];
@@ -958,7 +1079,7 @@ export const getCreateDatasetMutationOptions = <
 
     const mutationFn: MutationFunction<
         Awaited<ReturnType<typeof createDataset>>,
-        { data: DatasetCreateRequest }
+        { data: DatasetCreateFromBucketRequest }
     > = (props) => {
         const { data } = props ?? {};
 
@@ -969,7 +1090,7 @@ export const getCreateDatasetMutationOptions = <
 };
 
 export type CreateDatasetMutationResult = NonNullable<Awaited<ReturnType<typeof createDataset>>>;
-export type CreateDatasetMutationBody = DatasetCreateRequest;
+export type CreateDatasetMutationBody = DatasetCreateFromBucketRequest;
 export type CreateDatasetMutationError = HTTPValidationError;
 
 /**
@@ -980,7 +1101,7 @@ export const useCreateDataset = <TError = HTTPValidationError, TContext = unknow
         mutation?: UseMutationOptions<
             Awaited<ReturnType<typeof createDataset>>,
             TError,
-            { data: DatasetCreateRequest },
+            { data: DatasetCreateFromBucketRequest },
             TContext
         >;
     },
@@ -988,7 +1109,7 @@ export const useCreateDataset = <TError = HTTPValidationError, TContext = unknow
 ): UseMutationResult<
     Awaited<ReturnType<typeof createDataset>>,
     TError,
-    { data: DatasetCreateRequest },
+    { data: DatasetCreateFromBucketRequest },
     TContext
 > => {
     const mutationOptions = getCreateDatasetMutationOptions(options);
@@ -1254,43 +1375,44 @@ export const useDeleteDataset = <TError = HTTPValidationError, TContext = unknow
 };
 
 /**
- * Upload clip metadata JSON to create a new dataset version.
+ * Attach a GCS bucket to an existing dataset and ingest its metadata.
 
-Finds or creates videos by delivery_id, then creates clips linked to the new version.
-Automatically increments the version number from the latest existing version.
- * @summary Upload Dataset Version
+Creates version 0 (source videos) and version 1 (clips), transitions
+the dataset to active status. Intended for GTM/researchers to fulfill
+a customer-requested dataset.
+ * @summary Ingest Dataset
  */
-export const uploadDatasetVersion = (
+export const ingestDataset = (
     datasetId: number,
-    datasetVersionUploadRequest: DatasetVersionUploadRequest,
+    datasetIngestRequest: DatasetIngestRequest,
     signal?: AbortSignal
 ) => {
-    return customAxios<DatasetVersionUploadResponse>({
-        url: `/api/gateway/dataset/${datasetId}/version/upload`,
+    return customAxios<DatasetIngestResponse>({
+        url: `/api/gateway/dataset/${datasetId}/ingest`,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        data: datasetVersionUploadRequest,
+        data: datasetIngestRequest,
         signal,
     });
 };
 
-export const getUploadDatasetVersionMutationOptions = <
+export const getIngestDatasetMutationOptions = <
     TError = HTTPValidationError,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof uploadDatasetVersion>>,
+        Awaited<ReturnType<typeof ingestDataset>>,
         TError,
-        { datasetId: number; data: DatasetVersionUploadRequest },
+        { datasetId: number; data: DatasetIngestRequest },
         TContext
     >;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof uploadDatasetVersion>>,
+    Awaited<ReturnType<typeof ingestDataset>>,
     TError,
-    { datasetId: number; data: DatasetVersionUploadRequest },
+    { datasetId: number; data: DatasetIngestRequest },
     TContext
 > => {
-    const mutationKey = ['uploadDatasetVersion'];
+    const mutationKey = ['ingestDataset'];
     const { mutation: mutationOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
@@ -1298,43 +1420,41 @@ export const getUploadDatasetVersionMutationOptions = <
         : { mutation: { mutationKey } };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof uploadDatasetVersion>>,
-        { datasetId: number; data: DatasetVersionUploadRequest }
+        Awaited<ReturnType<typeof ingestDataset>>,
+        { datasetId: number; data: DatasetIngestRequest }
     > = (props) => {
         const { datasetId, data } = props ?? {};
 
-        return uploadDatasetVersion(datasetId, data);
+        return ingestDataset(datasetId, data);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type UploadDatasetVersionMutationResult = NonNullable<
-    Awaited<ReturnType<typeof uploadDatasetVersion>>
->;
-export type UploadDatasetVersionMutationBody = DatasetVersionUploadRequest;
-export type UploadDatasetVersionMutationError = HTTPValidationError;
+export type IngestDatasetMutationResult = NonNullable<Awaited<ReturnType<typeof ingestDataset>>>;
+export type IngestDatasetMutationBody = DatasetIngestRequest;
+export type IngestDatasetMutationError = HTTPValidationError;
 
 /**
- * @summary Upload Dataset Version
+ * @summary Ingest Dataset
  */
-export const useUploadDatasetVersion = <TError = HTTPValidationError, TContext = unknown>(
+export const useIngestDataset = <TError = HTTPValidationError, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof uploadDatasetVersion>>,
+            Awaited<ReturnType<typeof ingestDataset>>,
             TError,
-            { datasetId: number; data: DatasetVersionUploadRequest },
+            { datasetId: number; data: DatasetIngestRequest },
             TContext
         >;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof uploadDatasetVersion>>,
+    Awaited<ReturnType<typeof ingestDataset>>,
     TError,
-    { datasetId: number; data: DatasetVersionUploadRequest },
+    { datasetId: number; data: DatasetIngestRequest },
     TContext
 > => {
-    const mutationOptions = getUploadDatasetVersionMutationOptions(options);
+    const mutationOptions = getIngestDatasetMutationOptions(options);
 
     return useMutation(mutationOptions, queryClient);
 };
@@ -1463,88 +1583,6 @@ export function useSearchDatasetVersions<
 
     return query;
 }
-
-/**
- * @summary Create Dataset Version
- */
-export const createDatasetVersion = (
-    datasetId: number,
-    datasetVersionCreateRequest: DatasetVersionCreateRequest,
-    signal?: AbortSignal
-) => {
-    return customAxios<DatasetVersion>({
-        url: `/api/gateway/dataset/${datasetId}/version`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: datasetVersionCreateRequest,
-        signal,
-    });
-};
-
-export const getCreateDatasetVersionMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof createDatasetVersion>>,
-        TError,
-        { datasetId: number; data: DatasetVersionCreateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof createDatasetVersion>>,
-    TError,
-    { datasetId: number; data: DatasetVersionCreateRequest },
-    TContext
-> => {
-    const mutationKey = ['createDatasetVersion'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof createDatasetVersion>>,
-        { datasetId: number; data: DatasetVersionCreateRequest }
-    > = (props) => {
-        const { datasetId, data } = props ?? {};
-
-        return createDatasetVersion(datasetId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type CreateDatasetVersionMutationResult = NonNullable<
-    Awaited<ReturnType<typeof createDatasetVersion>>
->;
-export type CreateDatasetVersionMutationBody = DatasetVersionCreateRequest;
-export type CreateDatasetVersionMutationError = HTTPValidationError;
-
-/**
- * @summary Create Dataset Version
- */
-export const useCreateDatasetVersion = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof createDatasetVersion>>,
-            TError,
-            { datasetId: number; data: DatasetVersionCreateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof createDatasetVersion>>,
-    TError,
-    { datasetId: number; data: DatasetVersionCreateRequest },
-    TContext
-> => {
-    const mutationOptions = getCreateDatasetVersionMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
 
 /**
  * @summary Get Dataset Version
@@ -1677,6 +1715,779 @@ export function useGetDatasetVersion<
 
     return query;
 }
+
+/**
+ * @summary Get Version Videos
+ */
+export const getVersionVideos = (datasetId: number, versionId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDatasetVersionVideo>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/videos`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getGetVersionVideosQueryKey = (datasetId?: number, versionId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/version/${versionId}/videos`] as const;
+};
+
+export const getGetVersionVideosQueryOptions = <
+    TData = Awaited<ReturnType<typeof getVersionVideos>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetVersionVideosQueryKey(datasetId, versionId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVersionVideos>>> = ({ signal }) =>
+        getVersionVideos(datasetId, versionId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && versionId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type GetVersionVideosQueryResult = NonNullable<Awaited<ReturnType<typeof getVersionVideos>>>;
+export type GetVersionVideosQueryError = HTTPValidationError;
+
+export function useGetVersionVideos<
+    TData = Awaited<ReturnType<typeof getVersionVideos>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVersionVideos>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVersionVideos>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVersionVideos<
+    TData = Awaited<ReturnType<typeof getVersionVideos>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVersionVideos>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVersionVideos>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVersionVideos<
+    TData = Awaited<ReturnType<typeof getVersionVideos>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Version Videos
+ */
+
+export function useGetVersionVideos<
+    TData = Awaited<ReturnType<typeof getVersionVideos>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionVideos>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetVersionVideosQueryOptions(datasetId, versionId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Get Version Clips
+ */
+export const getVersionClips = (datasetId: number, versionId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseClip>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/clips`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getGetVersionClipsQueryKey = (datasetId?: number, versionId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/version/${versionId}/clips`] as const;
+};
+
+export const getGetVersionClipsQueryOptions = <
+    TData = Awaited<ReturnType<typeof getVersionClips>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetVersionClipsQueryKey(datasetId, versionId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVersionClips>>> = ({ signal }) =>
+        getVersionClips(datasetId, versionId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && versionId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type GetVersionClipsQueryResult = NonNullable<Awaited<ReturnType<typeof getVersionClips>>>;
+export type GetVersionClipsQueryError = HTTPValidationError;
+
+export function useGetVersionClips<
+    TData = Awaited<ReturnType<typeof getVersionClips>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVersionClips>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVersionClips>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVersionClips<
+    TData = Awaited<ReturnType<typeof getVersionClips>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getVersionClips>>,
+                    TError,
+                    Awaited<ReturnType<typeof getVersionClips>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetVersionClips<
+    TData = Awaited<ReturnType<typeof getVersionClips>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Version Clips
+ */
+
+export function useGetVersionClips<
+    TData = Awaited<ReturnType<typeof getVersionClips>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getVersionClips>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetVersionClipsQueryOptions(datasetId, versionId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * Create a new dataset version by selecting a subset of clips from an existing version.
+
+Copies the selected clips into the new version, simulating a new pipeline run
+where some clips were removed or retained.
+ * @summary Fork Version
+ */
+export const forkVersion = (
+    datasetId: number,
+    versionId: number,
+    createVersionFromClipsRequest: CreateVersionFromClipsRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<CreateVersionFromClipsResponse>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/fork`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: createVersionFromClipsRequest,
+        signal,
+    });
+};
+
+export const getForkVersionMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof forkVersion>>,
+        TError,
+        { datasetId: number; versionId: number; data: CreateVersionFromClipsRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof forkVersion>>,
+    TError,
+    { datasetId: number; versionId: number; data: CreateVersionFromClipsRequest },
+    TContext
+> => {
+    const mutationKey = ['forkVersion'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof forkVersion>>,
+        { datasetId: number; versionId: number; data: CreateVersionFromClipsRequest }
+    > = (props) => {
+        const { datasetId, versionId, data } = props ?? {};
+
+        return forkVersion(datasetId, versionId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type ForkVersionMutationResult = NonNullable<Awaited<ReturnType<typeof forkVersion>>>;
+export type ForkVersionMutationBody = CreateVersionFromClipsRequest;
+export type ForkVersionMutationError = HTTPValidationError;
+
+/**
+ * @summary Fork Version
+ */
+export const useForkVersion = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof forkVersion>>,
+            TError,
+            { datasetId: number; versionId: number; data: CreateVersionFromClipsRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof forkVersion>>,
+    TError,
+    { datasetId: number; versionId: number; data: CreateVersionFromClipsRequest },
+    TContext
+> => {
+    const mutationOptions = getForkVersionMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Clip Feedback
+ */
+export const searchClipFeedback = (
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    signal?: AbortSignal
+) => {
+    return customAxios<BaseEntitySearchResponseClipFeedback>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/clip/${clipId}/feedback`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getSearchClipFeedbackQueryKey = (
+    datasetId?: number,
+    versionId?: number,
+    clipId?: number
+) => {
+    return [
+        `/api/gateway/dataset/${datasetId}/version/${versionId}/clip/${clipId}/feedback`,
+    ] as const;
+};
+
+export const getSearchClipFeedbackQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey =
+        queryOptions?.queryKey ?? getSearchClipFeedbackQueryKey(datasetId, versionId, clipId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchClipFeedback>>> = ({ signal }) =>
+        searchClipFeedback(datasetId, versionId, clipId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && versionId && clipId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type SearchClipFeedbackQueryResult = NonNullable<
+    Awaited<ReturnType<typeof searchClipFeedback>>
+>;
+export type SearchClipFeedbackQueryError = HTTPValidationError;
+
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClipFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClipFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchClipFeedback>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchClipFeedback>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Clip Feedback
+ */
+
+export function useSearchClipFeedback<
+    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchClipFeedbackQueryOptions(datasetId, versionId, clipId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Clip Feedback
+ */
+export const createClipFeedback = (
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    clipFeedbackCreateRequest: ClipFeedbackCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<ClipFeedback>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/clip/${clipId}/feedback`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: clipFeedbackCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateClipFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createClipFeedback>>,
+        TError,
+        { datasetId: number; versionId: number; clipId: number; data: ClipFeedbackCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createClipFeedback>>,
+    TError,
+    { datasetId: number; versionId: number; clipId: number; data: ClipFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createClipFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createClipFeedback>>,
+        { datasetId: number; versionId: number; clipId: number; data: ClipFeedbackCreateRequest }
+    > = (props) => {
+        const { datasetId, versionId, clipId, data } = props ?? {};
+
+        return createClipFeedback(datasetId, versionId, clipId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateClipFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof createClipFeedback>>
+>;
+export type CreateClipFeedbackMutationBody = ClipFeedbackCreateRequest;
+export type CreateClipFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Clip Feedback
+ */
+export const useCreateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createClipFeedback>>,
+            TError,
+            {
+                datasetId: number;
+                versionId: number;
+                clipId: number;
+                data: ClipFeedbackCreateRequest;
+            },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createClipFeedback>>,
+    TError,
+    { datasetId: number; versionId: number; clipId: number; data: ClipFeedbackCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateClipFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Update Clip Feedback
+ */
+export const updateClipFeedback = (
+    datasetId: number,
+    versionId: number,
+    clipId: number,
+    feedbackId: number,
+    clipFeedbackUpdateRequest: ClipFeedbackUpdateRequest
+) => {
+    return customAxios<ClipFeedback>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/clip/${clipId}/feedback/${feedbackId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: clipFeedbackUpdateRequest,
+    });
+};
+
+export const getUpdateClipFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateClipFeedback>>,
+        TError,
+        {
+            datasetId: number;
+            versionId: number;
+            clipId: number;
+            feedbackId: number;
+            data: ClipFeedbackUpdateRequest;
+        },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateClipFeedback>>,
+    TError,
+    {
+        datasetId: number;
+        versionId: number;
+        clipId: number;
+        feedbackId: number;
+        data: ClipFeedbackUpdateRequest;
+    },
+    TContext
+> => {
+    const mutationKey = ['updateClipFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateClipFeedback>>,
+        {
+            datasetId: number;
+            versionId: number;
+            clipId: number;
+            feedbackId: number;
+            data: ClipFeedbackUpdateRequest;
+        }
+    > = (props) => {
+        const { datasetId, versionId, clipId, feedbackId, data } = props ?? {};
+
+        return updateClipFeedback(datasetId, versionId, clipId, feedbackId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateClipFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof updateClipFeedback>>
+>;
+export type UpdateClipFeedbackMutationBody = ClipFeedbackUpdateRequest;
+export type UpdateClipFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Clip Feedback
+ */
+export const useUpdateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateClipFeedback>>,
+            TError,
+            {
+                datasetId: number;
+                versionId: number;
+                clipId: number;
+                feedbackId: number;
+                data: ClipFeedbackUpdateRequest;
+            },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateClipFeedback>>,
+    TError,
+    {
+        datasetId: number;
+        versionId: number;
+        clipId: number;
+        feedbackId: number;
+        data: ClipFeedbackUpdateRequest;
+    },
+    TContext
+> => {
+    const mutationOptions = getUpdateClipFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Summarize all clip feedback for a dataset using LLM.
+ * @summary Summarize Feedback
+ */
+export const summarizeFeedback = (datasetId: number, signal?: AbortSignal) => {
+    return customAxios<FeedbackSummary>({
+        url: `/api/gateway/dataset/${datasetId}/summarize-feedback`,
+        method: 'POST',
+        signal,
+    });
+};
+
+export const getSummarizeFeedbackMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof summarizeFeedback>>,
+        TError,
+        { datasetId: number },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof summarizeFeedback>>,
+    TError,
+    { datasetId: number },
+    TContext
+> => {
+    const mutationKey = ['summarizeFeedback'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof summarizeFeedback>>,
+        { datasetId: number }
+    > = (props) => {
+        const { datasetId } = props ?? {};
+
+        return summarizeFeedback(datasetId);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type SummarizeFeedbackMutationResult = NonNullable<
+    Awaited<ReturnType<typeof summarizeFeedback>>
+>;
+
+export type SummarizeFeedbackMutationError = HTTPValidationError;
+
+/**
+ * @summary Summarize Feedback
+ */
+export const useSummarizeFeedback = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof summarizeFeedback>>,
+            TError,
+            { datasetId: number },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof summarizeFeedback>>,
+    TError,
+    { datasetId: number },
+    TContext
+> => {
+    const mutationOptions = getSummarizeFeedbackMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
 
 /**
  * @summary Search Assignments
@@ -3583,385 +4394,6 @@ export const useCreateDeliveryFeedback = <TError = HTTPValidationError, TContext
     TContext
 > => {
     const mutationOptions = getCreateDeliveryFeedbackMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Search Clip Feedback
- */
-export const searchClipFeedback = (deliveryId: number, clipId: number, signal?: AbortSignal) => {
-    return customAxios<BaseEntitySearchResponseClipFeedback>({
-        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`,
-        method: 'GET',
-        signal,
-    });
-};
-
-export const getSearchClipFeedbackQueryKey = (deliveryId?: number, clipId?: number) => {
-    return [`/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`] as const;
-};
-
-export const getSearchClipFeedbackQueryOptions = <
-    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
-    TError = HTTPValidationError,
->(
-    deliveryId: number,
-    clipId: number,
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
-        >;
-    }
-) => {
-    const { query: queryOptions } = options ?? {};
-
-    const queryKey = queryOptions?.queryKey ?? getSearchClipFeedbackQueryKey(deliveryId, clipId);
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchClipFeedback>>> = ({ signal }) =>
-        searchClipFeedback(deliveryId, clipId, signal);
-
-    return {
-        queryKey,
-        queryFn,
-        enabled: !!(deliveryId && clipId),
-        ...queryOptions,
-    } as UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-};
-
-export type SearchClipFeedbackQueryResult = NonNullable<
-    Awaited<ReturnType<typeof searchClipFeedback>>
->;
-export type SearchClipFeedbackQueryError = HTTPValidationError;
-
-export function useSearchClipFeedback<
-    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
-    TError = HTTPValidationError,
->(
-    deliveryId: number,
-    clipId: number,
-    options: {
-        query: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
-        > &
-            Pick<
-                DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof searchClipFeedback>>,
-                    TError,
-                    Awaited<ReturnType<typeof searchClipFeedback>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useSearchClipFeedback<
-    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
-    TError = HTTPValidationError,
->(
-    deliveryId: number,
-    clipId: number,
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
-        > &
-            Pick<
-                UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof searchClipFeedback>>,
-                    TError,
-                    Awaited<ReturnType<typeof searchClipFeedback>>
-                >,
-                'initialData'
-            >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-export function useSearchClipFeedback<
-    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
-    TError = HTTPValidationError,
->(
-    deliveryId: number,
-    clipId: number,
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
-        >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
-/**
- * @summary Search Clip Feedback
- */
-
-export function useSearchClipFeedback<
-    TData = Awaited<ReturnType<typeof searchClipFeedback>>,
-    TError = HTTPValidationError,
->(
-    deliveryId: number,
-    clipId: number,
-    options?: {
-        query?: Partial<
-            UseQueryOptions<Awaited<ReturnType<typeof searchClipFeedback>>, TError, TData>
-        >;
-    },
-    queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchClipFeedbackQueryOptions(deliveryId, clipId, options);
-
-    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-        queryKey: DataTag<QueryKey, TData>;
-    };
-
-    query.queryKey = queryOptions.queryKey;
-
-    return query;
-}
-
-/**
- * @summary Create Clip Feedback
- */
-export const createClipFeedback = (
-    deliveryId: number,
-    clipId: number,
-    clipFeedbackCreateRequest: ClipFeedbackCreateRequest,
-    signal?: AbortSignal
-) => {
-    return customAxios<ClipFeedback>({
-        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: clipFeedbackCreateRequest,
-        signal,
-    });
-};
-
-export const getCreateClipFeedbackMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof createClipFeedback>>,
-        TError,
-        { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof createClipFeedback>>,
-    TError,
-    { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
-    TContext
-> => {
-    const mutationKey = ['createClipFeedback'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof createClipFeedback>>,
-        { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest }
-    > = (props) => {
-        const { deliveryId, clipId, data } = props ?? {};
-
-        return createClipFeedback(deliveryId, clipId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type CreateClipFeedbackMutationResult = NonNullable<
-    Awaited<ReturnType<typeof createClipFeedback>>
->;
-export type CreateClipFeedbackMutationBody = ClipFeedbackCreateRequest;
-export type CreateClipFeedbackMutationError = HTTPValidationError;
-
-/**
- * @summary Create Clip Feedback
- */
-export const useCreateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof createClipFeedback>>,
-            TError,
-            { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof createClipFeedback>>,
-    TError,
-    { deliveryId: number; clipId: number; data: ClipFeedbackCreateRequest },
-    TContext
-> => {
-    const mutationOptions = getCreateClipFeedbackMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * @summary Update Clip Feedback
- */
-export const updateClipFeedback = (
-    deliveryId: number,
-    clipId: number,
-    feedbackId: number,
-    clipFeedbackUpdateRequest: ClipFeedbackUpdateRequest
-) => {
-    return customAxios<ClipFeedback>({
-        url: `/api/gateway/delivery/${deliveryId}/clip/${clipId}/feedback/${feedbackId}`,
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        data: clipFeedbackUpdateRequest,
-    });
-};
-
-export const getUpdateClipFeedbackMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof updateClipFeedback>>,
-        TError,
-        { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof updateClipFeedback>>,
-    TError,
-    { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
-    TContext
-> => {
-    const mutationKey = ['updateClipFeedback'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof updateClipFeedback>>,
-        { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest }
-    > = (props) => {
-        const { deliveryId, clipId, feedbackId, data } = props ?? {};
-
-        return updateClipFeedback(deliveryId, clipId, feedbackId, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateClipFeedbackMutationResult = NonNullable<
-    Awaited<ReturnType<typeof updateClipFeedback>>
->;
-export type UpdateClipFeedbackMutationBody = ClipFeedbackUpdateRequest;
-export type UpdateClipFeedbackMutationError = HTTPValidationError;
-
-/**
- * @summary Update Clip Feedback
- */
-export const useUpdateClipFeedback = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof updateClipFeedback>>,
-            TError,
-            {
-                deliveryId: number;
-                clipId: number;
-                feedbackId: number;
-                data: ClipFeedbackUpdateRequest;
-            },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof updateClipFeedback>>,
-    TError,
-    { deliveryId: number; clipId: number; feedbackId: number; data: ClipFeedbackUpdateRequest },
-    TContext
-> => {
-    const mutationOptions = getUpdateClipFeedbackMutationOptions(options);
-
-    return useMutation(mutationOptions, queryClient);
-};
-
-/**
- * Summarize all clip feedback for a delivery using LLM.
- * @summary Summarize Feedback
- */
-export const summarizeFeedback = (deliveryId: number, signal?: AbortSignal) => {
-    return customAxios<FeedbackSummary>({
-        url: `/api/gateway/delivery/${deliveryId}/summarize-feedback`,
-        method: 'POST',
-        signal,
-    });
-};
-
-export const getSummarizeFeedbackMutationOptions = <
-    TError = HTTPValidationError,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof summarizeFeedback>>,
-        TError,
-        { deliveryId: number },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof summarizeFeedback>>,
-    TError,
-    { deliveryId: number },
-    TContext
-> => {
-    const mutationKey = ['summarizeFeedback'];
-    const { mutation: mutationOptions } = options
-        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-            ? options
-            : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
-
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof summarizeFeedback>>,
-        { deliveryId: number }
-    > = (props) => {
-        const { deliveryId } = props ?? {};
-
-        return summarizeFeedback(deliveryId);
-    };
-
-    return { mutationFn, ...mutationOptions };
-};
-
-export type SummarizeFeedbackMutationResult = NonNullable<
-    Awaited<ReturnType<typeof summarizeFeedback>>
->;
-
-export type SummarizeFeedbackMutationError = HTTPValidationError;
-
-/**
- * @summary Summarize Feedback
- */
-export const useSummarizeFeedback = <TError = HTTPValidationError, TContext = unknown>(
-    options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof summarizeFeedback>>,
-            TError,
-            { deliveryId: number },
-            TContext
-        >;
-    },
-    queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof summarizeFeedback>>,
-    TError,
-    { deliveryId: number },
-    TContext
-> => {
-    const mutationOptions = getSummarizeFeedbackMutationOptions(options);
 
     return useMutation(mutationOptions, queryClient);
 };

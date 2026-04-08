@@ -5,16 +5,18 @@ The core domain is built around a **delivery-centric workflow**: datasets are ve
 ## Entity Relationship Diagram
 
 ```
-Dataset
+Dataset (status: requested -> initialized -> active)
   └── DatasetVersion (versioned, with lineage)
-        ├── Clip[] (flattened metadata for filtering)
+        ├── DatasetVersionVideo[] (version 0: source video tracking)
+        ├── Clip[] (version 1+: flattened metadata for filtering)
         │     └── ClipFeedback[] (scoped to delivery, timestamped, field-specific)
         └── Delivery[] (workflow state machine)
               ├── DeliveryAccess[] (role-based per user)
               └── DeliveryFeedback[] (delivery-level verdicts)
 
-Video (source videos, 1:many with clips)
-  └── Clip[]
+Video (source videos, deduplicated by delivery_id)
+  ├── Clip[]
+  └── DatasetVersionVideo[]
 ```
 
 ## Key Design Decisions
@@ -31,9 +33,13 @@ Enables lineage tracking (`parent_version_id`), version diffing, and reuse acros
 
 Fields like `avg_face_size`, `max_num_faces`, `is_full_body`, `has_overlay` are columns on `Clip`, not a key-value table. This is intentional: the primary use case is heavy filtering, and flattened columns give us query performance and type safety.
 
+### Dataset has its own lifecycle
+
+`DatasetStatus` tracks ingestion progress: `requested` -> `initialized` -> `active`. See [[Dataset Lifecycle]] for details on version 0 (source videos) vs version 1+ (clips).
+
 ### Delivery status is a state machine
 
-`DeliveryStatus` tracks the workflow: `draft` -> `sent_to_customer` -> `in_review` -> `feedback_received` -> `iterating` -> `ready_for_approval` -> `approved`/`rejected`.
+`DeliveryStatus` tracks the customer review workflow: `draft` -> `sent_to_customer` -> `in_review` -> `feedback_received` -> `iterating` -> `ready_for_approval` -> `approved`/`rejected`.
 
 State lives at the **delivery level**, not per-clip. Individual clips get feedback ratings, but the delivery moves through states as a unit.
 
@@ -47,8 +53,9 @@ State lives at the **delivery level**, not per-clip. Individual clips get feedba
 
 | Model | File | Key Fields |
 |-------|------|-----------|
-| Dataset | `app/blueprints/dataset.py` | name, description |
+| Dataset | `app/blueprints/dataset.py` | name, description, status, bucket_path |
 | DatasetVersion | `app/blueprints/dataset.py` | dataset_id, version_number, parent_version_id, created_by |
+| DatasetVersionVideo | `app/blueprints/dataset.py` | dataset_version_id, video_id |
 | Video | `app/blueprints/video.py` | delivery_id, uri, fps, height, width, source, language |
 | Clip | `app/blueprints/clip.py` | video_id, dataset_version_id, uri, start/end_time, duration, avg_face_size, max_num_faces, is_full_body, has_overlay |
 | Delivery | `app/blueprints/delivery.py` | dataset_version_id, customer_request_description, created_by, status |
@@ -61,3 +68,4 @@ State lives at the **delivery level**, not per-clip. Individual clips get feedba
 - [[Data Model Overview]] - Blueprint pattern and type hierarchy
 - [[Blueprint Pattern]] - Entity definition convention
 - [[API Overview]] - Route registration
+- [[Dataset Lifecycle]] - Dataset status machine and version 0 concept

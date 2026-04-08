@@ -86,13 +86,14 @@ gcs_download:
 gcs_view:
 	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/view_videos.py $(prefix)
 
-# Generate sample clip metadata from bucket videos.
-# Usage: make gcs_generate_metadata [prefix=videos/] [samples=20] [output=sample.json]
+# Generate sample clip/video metadata JSONL from bucket videos.
+# Usage: make gcs_generate_metadata [prefix=sample2/clips/] [samples=20] [output_dir=./sample_out]
 gcs_generate_metadata:
 	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/generate_sample_metadata.py \
 		$(if $(prefix),--prefix $(prefix)) \
 		$(if $(samples),--samples $(samples)) \
-		$(if $(output),--output $(output))
+		$(if $(clips_per_video),--clips-per-video $(clips_per_video)) \
+		$(if $(output_dir),--output-dir $(output_dir))
 
 # ------------------------------------------------------------
 # -------------- Database Management -------------------------

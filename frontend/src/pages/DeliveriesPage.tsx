@@ -9,18 +9,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
     useSearchDeliveries,
-    useCreateDelivery,
+    useSearchDatasets,
+    useSearchAssignments,
     useCreateDataset,
-    useCreateDatasetVersion,
+    Dataset,
     Delivery,
-    DeliveryStatus,
+    DatasetAssignment,
 } from '@/openapi/sieveOnsite';
 import { useCurrentUser } from '@/store/components/authSlice';
-import { Plus, Package, ArrowRight } from 'lucide-react';
+import { Plus, Package, Database, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
     requested: 'bg-amber-100 text-amber-700',
+    initialized: 'bg-blue-100 text-blue-700',
+    active: 'bg-green-100 text-green-700',
     draft: 'bg-gray-100 text-gray-700',
     sent_to_customer: 'bg-blue-100 text-blue-700',
     in_review: 'bg-yellow-100 text-yellow-700',
@@ -39,12 +42,56 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
+// --- Customer view: shows their dataset requests ---
+
+function CustomerRequestCard({ dataset, onClick }: { dataset: Dataset; onClick: () => void }) {
+    const status = dataset.status ?? 'requested';
+    const statusLabel: Record<string, string> = {
+        requested: 'Submitted — waiting for team to review',
+        initialized: 'In progress — team is preparing samples',
+        active: 'Samples ready for review',
+    };
+
+    return (
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={onClick}>
+            <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="font-medium truncate">{dataset.name}</span>
+                            <StatusBadge status={status} />
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {statusLabel[status] ?? status}
+                        </p>
+                        {dataset.description && (
+                            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                {dataset.description}
+                            </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Submitted {new Date(dataset.created_at).toLocaleDateString()}
+                        </p>
+                    </div>
+                    {status === 'active' ? (
+                        <Badge className="bg-green-600 text-white text-xs flex-shrink-0">
+                            Review
+                        </Badge>
+                    ) : (
+                        <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// --- GTM/Researcher view: shows deliveries ---
+
 function DeliveryCard({ delivery, onClick }: { delivery: Delivery; onClick: () => void }) {
     return (
-        <Card
-            className="cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={onClick}
-        >
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={onClick}>
             <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -53,7 +100,7 @@ function DeliveryCard({ delivery, onClick }: { delivery: Delivery; onClick: () =
                             <span className="font-medium truncate">
                                 Delivery #{delivery.id}
                             </span>
-                            <StatusBadge status={delivery.status ?? 'requested'} />
+                            <StatusBadge status={delivery.status ?? 'draft'} />
                         </div>
                         {delivery.customer_request_description && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -71,6 +118,8 @@ function DeliveryCard({ delivery, onClick }: { delivery: Delivery; onClick: () =
     );
 }
 
+// --- Main page ---
+
 export default function DeliveriesPage() {
     const navigate = useNavigate();
     const currentUser = useCurrentUser();
@@ -80,42 +129,51 @@ export default function DeliveriesPage() {
     const [newDatasetName, setNewDatasetName] = useState('');
     const [newDescription, setNewDescription] = useState('');
 
-    const { data: deliveriesResponse, isLoading, refetch: refetchDeliveries } = useSearchDeliveries({});
+    // GTM/Researcher: fetch deliveries
+    const { data: deliveriesResponse, isLoading: deliveriesLoading } = useSearchDeliveries(
+        {},
+        { query: { enabled: !isCustomer } }
+    );
     const deliveries = (deliveriesResponse as { entities: Delivery[] } | undefined)?.entities ?? [];
 
+    // Customer: fetch their datasets (which are their requests)
+    const { data: datasetsResponse, isLoading: datasetsLoading, refetch: refetchDatasets } = useSearchDatasets({});
+    const allDatasets = (datasetsResponse as { entities: Dataset[] } | undefined)?.entities ?? [];
+
+    const { data: assignmentsResponse } = useSearchAssignments(
+        {},
+        { query: { enabled: isCustomer } }
+    );
+    const assignments = (assignmentsResponse as { entities: DatasetAssignment[] } | undefined)?.entities ?? [];
+
+    // Customer sees only datasets assigned to them
+    const myDatasetIds = new Set(
+        assignments.filter((a) => a.user_id === currentUser?.id).map((a) => a.dataset_id)
+    );
+    const myDatasets = isCustomer
+        ? allDatasets.filter((d) => myDatasetIds.has(d.id))
+        : [];
+
     const createDataset = useCreateDataset();
-    const createDatasetVersion = useCreateDatasetVersion();
-    const createDelivery = useCreateDelivery();
 
     const handleCreate = async () => {
         if (!newDatasetName.trim()) return;
 
-        const dataset = await createDataset.mutateAsync({ data: { name: newDatasetName } });
-        const version = await createDatasetVersion.mutateAsync({
-            datasetId: dataset.id,
-            data: { dataset_id: dataset.id, version_number: 1, created_by: 0 },
-        });
-        await createDelivery.mutateAsync({
+        await createDataset.mutateAsync({
             data: {
-                dataset_version_id: version.id,
-                customer_request_description: newDescription || undefined,
-                created_by: 0,
-                status: isCustomer ? DeliveryStatus.requested : DeliveryStatus.draft,
+                name: newDatasetName,
+                description: newDescription || undefined,
             },
         });
 
         setCreateOpen(false);
         setNewDatasetName('');
         setNewDescription('');
-        refetchDeliveries();
+        refetchDatasets();
     };
 
-    const isPending = createDataset.isPending || createDatasetVersion.isPending || createDelivery.isPending;
-
-    // Customers: clicking a "requested" delivery just shows it, no deep navigation
-    const handleCardClick = (delivery: Delivery) => {
-        navigate(`/delivery/${delivery.id}`);
-    };
+    const isPending = createDataset.isPending;
+    const isLoading = isCustomer ? datasetsLoading : deliveriesLoading;
 
     return (
         <AppSidebar>
@@ -132,28 +190,48 @@ export default function DeliveriesPage() {
 
                 {isLoading ? (
                     <p className="text-muted-foreground text-center py-12">Loading...</p>
-                ) : deliveries.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">
-                            {isCustomer ? 'No requests yet' : 'No deliveries yet'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            {isCustomer
-                                ? 'Request a dataset to get started.'
-                                : 'Create a delivery to start sending samples to customers.'}
-                        </p>
-                    </div>
+                ) : isCustomer ? (
+                    /* Customer view: dataset requests */
+                    myDatasets.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground mb-2">No requests yet</p>
+                            <p className="text-sm text-muted-foreground">
+                                Request a dataset to get started.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {myDatasets.map((dataset) => (
+                                <CustomerRequestCard
+                                    key={dataset.id}
+                                    dataset={dataset}
+                                    onClick={() => navigate(`/dataset/${dataset.id}`)}
+                                />
+                            ))}
+                        </div>
+                    )
                 ) : (
-                    <div className="space-y-3">
-                        {deliveries.map((delivery) => (
-                            <DeliveryCard
-                                key={delivery.id}
-                                delivery={delivery}
-                                onClick={() => handleCardClick(delivery)}
-                            />
-                        ))}
-                    </div>
+                    /* GTM/Researcher view: deliveries */
+                    deliveries.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground mb-2">No deliveries yet</p>
+                            <p className="text-sm text-muted-foreground">
+                                Create a delivery to start sending samples to customers.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {deliveries.map((delivery) => (
+                                <DeliveryCard
+                                    key={delivery.id}
+                                    delivery={delivery}
+                                    onClick={() => navigate(`/delivery/${delivery.id}`)}
+                                />
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
 

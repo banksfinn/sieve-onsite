@@ -70,5 +70,31 @@ class DatasetVersionStore(
         return stmt
 
 
+class DatasetVersionVideoStore(
+    BaseEntityStore[
+        DatasetVersionVideoModel,
+        DatasetVersionVideo,
+        DatasetVersionVideoQuery,
+        DatasetVersionVideoCreateRequest,
+        DatasetVersionVideoCreateRequest,  # no update — immutable join
+        BaseEntityDeleteRequest,
+    ]
+):
+    entity_model = DatasetVersionVideoModel
+    entity = DatasetVersionVideo
+    entity_query = DatasetVersionVideoQuery
+    entity_create_request = DatasetVersionVideoCreateRequest
+    entity_update_request = DatasetVersionVideoCreateRequest
+    entity_delete_request = BaseEntityDeleteRequest
+
+    def _apply_entity_specific_search(
+        self, query: DatasetVersionVideoQuery, stmt: Select[tuple[DatasetVersionVideoModel]]
+    ) -> Select[tuple[DatasetVersionVideoModel]]:
+        if query.dataset_version_id:
+            stmt = stmt.filter(DatasetVersionVideoModel.dataset_version_id == query.dataset_version_id)
+        return stmt
+
+
 dataset_store = DatasetStore()
 dataset_version_store = DatasetVersionStore()
+dataset_version_video_store = DatasetVersionVideoStore()

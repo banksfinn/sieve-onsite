@@ -8,21 +8,24 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useSearchDatasets,
     useSearchAssignments,
     useCreateDataset,
-    useCreateAssignment,
-    useListUsers,
     Dataset,
     DatasetAssignment,
-    User,
+    DatasetCreateFromBucketRequest,
     getSearchDatasetsQueryKey,
     getSearchAssignmentsQueryKey,
 } from '@/openapi/sieveOnsite';
 import { useCurrentUser } from '@/store/components/authSlice';
 import { Plus, Database, ArrowRight } from 'lucide-react';
+
+const datasetStatusColors: Record<string, string> = {
+    requested: 'bg-yellow-50 text-yellow-700',
+    initialized: 'bg-blue-50 text-blue-700',
+    active: 'bg-green-50 text-green-700',
+};
 
 function DatasetCard({
     dataset,
@@ -46,6 +49,14 @@ function DatasetCard({
                         <div className="flex items-center gap-2 mb-1">
                             <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="font-medium truncate">{dataset.name}</span>
+                            {dataset.status && (
+                                <Badge
+                                    variant="outline"
+                                    className={`text-xs ${datasetStatusColors[dataset.status] ?? ''}`}
+                                >
+                                    {dataset.status}
+                                </Badge>
+                            )}
                         </div>
                         {dataset.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -93,7 +104,9 @@ export default function DatasetsPage() {
     const [createOpen, setCreateOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [newDescription, setNewDescription] = useState('');
-    const [assignCustomerId, setAssignCustomerId] = useState<string>('');
+    const [newBucketPath, setNewBucketPath] = useState('gs://product-onsite/sample2/');
+    const [clipMetadataText, setClipMetadataText] = useState('');
+    const [createError, setCreateError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned'>('all');
 
     const { data: datasetsResponse, isLoading } = useSearchDatasets({});
@@ -102,12 +115,8 @@ export default function DatasetsPage() {
     const { data: assignmentsResponse } = useSearchAssignments({});
     const allAssignments = (assignmentsResponse as { entities: DatasetAssignment[] } | undefined)?.entities ?? [];
 
-    const { data: usersResponse } = useListUsers({});
-    const users = (usersResponse as { entities: User[] } | undefined)?.entities ?? [];
-    const customers = users.filter((u) => u.role === 'customer');
-
     const createDataset = useCreateDataset();
-    const createAssignment = useCreateAssignment();
+    const canCreate = currentUser?.role === 'gtm' || currentUser?.role === 'customer';
 
     // Filter datasets
     const filteredDatasets = datasets.filter((d) => {
@@ -121,54 +130,60 @@ export default function DatasetsPage() {
     });
 
     const handleCreate = async () => {
-        if (!newName.trim()) return;
+        if (!newName.trim() || !newBucketPath.trim()) return;
+        setCreateError(null);
 
-        const dataset = await createDataset.mutateAsync({
-            data: { name: newName, description: newDescription || undefined },
-        });
-
-        // Assign current user as GTM lead
-        if (currentUser) {
-            await createAssignment.mutateAsync({
-                data: { dataset_id: dataset.id, user_id: currentUser.id, role: 'gtm_lead' },
-            });
+        let clipMetadata: unknown[] | undefined;
+        if (clipMetadataText.trim()) {
+            try {
+                const text = clipMetadataText.trim();
+                if (text.startsWith('[')) {
+                    clipMetadata = JSON.parse(text);
+                } else {
+                    clipMetadata = text.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+                }
+            } catch {
+                setCreateError('Invalid clip metadata JSON/JSONL');
+                return;
+            }
         }
 
-        // Assign customer if selected
-        if (assignCustomerId) {
-            await createAssignment.mutateAsync({
-                data: { dataset_id: dataset.id, user_id: Number(assignCustomerId), role: 'customer' },
+        try {
+            const result = await createDataset.mutateAsync({
+                data: {
+                    name: newName,
+                    description: newDescription || undefined,
+                    bucket_path: newBucketPath,
+                    clip_metadata: clipMetadata as DatasetCreateFromBucketRequest['clip_metadata'],
+                },
             });
+
+            setCreateOpen(false);
+            setNewName('');
+            setNewDescription('');
+            setNewBucketPath('gs://product-onsite/sample2/');
+            setClipMetadataText('');
+            setCreateError(null);
+            queryClient.invalidateQueries({ queryKey: getSearchDatasetsQueryKey({}) });
+            queryClient.invalidateQueries({ queryKey: getSearchAssignmentsQueryKey({}) });
+            navigate(`/dataset/${result.dataset.id}`);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to create dataset';
+            setCreateError(message);
         }
-
-        setCreateOpen(false);
-        setNewName('');
-        setNewDescription('');
-        setAssignCustomerId('');
-        queryClient.invalidateQueries({ queryKey: getSearchDatasetsQueryKey({}) });
-        queryClient.invalidateQueries({ queryKey: getSearchAssignmentsQueryKey({}) });
     };
-
-    const handleAssignSelf = async (datasetId: number) => {
-        if (!currentUser) return;
-        const role = currentUser.role === 'researcher' ? 'researcher' : 'gtm_lead';
-        await createAssignment.mutateAsync({
-            data: { dataset_id: datasetId, user_id: currentUser.id, role },
-        });
-        queryClient.invalidateQueries({ queryKey: getSearchAssignmentsQueryKey({}) });
-    };
-
-    const isPending = createDataset.isPending || createAssignment.isPending;
 
     return (
         <AppSidebar>
             <div className="container mx-auto max-w-4xl py-8 px-4">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Datasets</h1>
-                    <Button onClick={() => setCreateOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Dataset
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => setCreateOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Dataset
+                        </Button>
+                    )}
                 </div>
 
                 {/* Filters */}
@@ -221,6 +236,17 @@ export default function DatasetsPage() {
                             />
                         </div>
                         <div>
+                            <label className="text-sm font-medium mb-1 block">GCS Bucket Path</label>
+                            <Input
+                                placeholder="gs://product-onsite/sample2/"
+                                value={newBucketPath}
+                                onChange={(e) => setNewBucketPath(e.target.value)}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Bucket must contain clip_metadata.jsonl and video_metadata.jsonl
+                            </p>
+                        </div>
+                        <div>
                             <label className="text-sm font-medium mb-1 block">Description</label>
                             <Textarea
                                 placeholder="Dataset requirements and notes..."
@@ -230,24 +256,24 @@ export default function DatasetsPage() {
                             />
                         </div>
                         <div>
-                            <label className="text-sm font-medium mb-1 block">Assign Customer</label>
-                            <Select value={assignCustomerId} onValueChange={setAssignCustomerId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select customer..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {customers.map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
-                                            {c.name} ({c.email_address})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <label className="text-sm font-medium mb-1 block">
+                                Clip Metadata (optional)
+                            </label>
+                            <Textarea
+                                placeholder="Paste JSONL clip metadata to use a specific subset. Leave empty to use all clips from the bucket."
+                                value={clipMetadataText}
+                                onChange={(e) => setClipMetadataText(e.target.value)}
+                                rows={4}
+                                className="font-mono text-xs"
+                            />
                         </div>
+                        {createError && (
+                            <p className="text-sm text-destructive">{createError}</p>
+                        )}
                         <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-                            <Button onClick={handleCreate} disabled={!newName.trim() || isPending}>
-                                {isPending ? 'Creating...' : 'Create'}
+                            <Button onClick={handleCreate} disabled={!newName.trim() || !newBucketPath.trim() || createDataset.isPending}>
+                                {createDataset.isPending ? 'Creating...' : 'Create'}
                             </Button>
                         </div>
                     </div>

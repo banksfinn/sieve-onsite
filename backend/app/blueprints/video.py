@@ -7,6 +7,7 @@ from database_manager.blueprints.base_entity import (
 )
 from database_manager.schemas.table_names import video_table_name
 from sqlalchemy import Float, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -18,8 +19,7 @@ class VideoModel(BaseEntityModel):
     fps: Mapped[float | None] = mapped_column(Float, nullable=True)
     height: Mapped[int | None] = mapped_column(Integer, nullable=True)
     width: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    source: Mapped[str | None] = mapped_column(String, nullable=True)
-    language: Mapped[str | None] = mapped_column(String, nullable=True)
+    extra_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
 class Video(BaseEntity):
@@ -28,8 +28,7 @@ class Video(BaseEntity):
     fps: float | None = None
     height: int | None = None
     width: int | None = None
-    source: str | None = None
-    language: str | None = None
+    extra_metadata: dict | None = None
 
 
 class VideoCreateRequest(BaseEntityCreateRequest):
@@ -38,19 +37,15 @@ class VideoCreateRequest(BaseEntityCreateRequest):
     fps: float | None = None
     height: int | None = None
     width: int | None = None
-    source: str | None = None
-    language: str | None = None
+    extra_metadata: dict | None = None
 
 
 class VideoUpdateRequest(BaseEntityUpdateRequest):
     fps: float | None = None
     height: int | None = None
     width: int | None = None
-    source: str | None = None
-    language: str | None = None
+    extra_metadata: dict | None = None
 
 
 class VideoQuery(BaseEntityQuery):
     delivery_id: str | None = None
-    source: str | None = None
-    language: str | None = None

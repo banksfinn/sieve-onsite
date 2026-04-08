@@ -1,10 +1,10 @@
 """Generate sample clip and video metadata from videos in the GCS bucket.
 
-Queries the bucket for video files, randomly samples clips from them,
-and outputs JSON matching the format expected by the dataset version API.
+Queries the bucket for video files, randomly samples them, and outputs
+JSONL files matching the format used by sample2/ in the product-onsite bucket.
 
 Usage:
-    python generate_sample_metadata.py [--prefix PREFIX] [--samples N] [--output FILE]
+    python generate_sample_metadata.py [--prefix PREFIX] [--samples N] [--output-dir DIR]
 """
 
 import argparse
@@ -17,79 +17,94 @@ from google.cloud import storage
 
 BUCKET_NAME = "product-onsite"
 
-# Realistic defaults for generated metadata
-FPS_OPTIONS = [23.976, 24.0, 25.0, 29.97, 30.0, 59.94, 60.0]
+# Video metadata options
+FPS_OPTIONS = [24, 25, 29.97, 30, 30.03003, 60]
 RESOLUTION_OPTIONS = [(1920, 1080), (1280, 720), (3840, 2160), (2560, 1440)]
-SOURCE_OPTIONS = ["web", "visora", "upload", "studio"]
-LANGUAGE_OPTIONS = ["en", "es", "fr", "de", "ja", "ko", "zh", "pt", "fa", "ar"]
 
 # Clip generation parameters
-MIN_CLIP_DURATION = 2.0
-MAX_CLIP_DURATION = 15.0
-ASSUMED_VIDEO_DURATION = 120.0  # assume 2min if we can't determine length
+MIN_CLIP_DURATION = 3
+MAX_CLIP_DURATION = 420
 
 
-def get_video_blobs(prefix: str | None = None) -> list[storage.Blob]:
+def get_video_blobs(prefix: str | None = None) -> list:
     client = storage.Client()
     blobs = client.list_blobs(BUCKET_NAME, prefix=prefix)
     return [b for b in blobs if b.name.endswith((".mp4", ".webm", ".mov"))]
 
 
-def delivery_id_from_blob(blob: storage.Blob) -> str:
-    """Extract a delivery_id from the blob name (filename without extension)."""
-    name = blob.name.rsplit("/", 1)[-1]
-    return name.rsplit(".", 1)[0]
+def video_id_from_blob(blob) -> str:
+    """Extract video_id from blob name: takes the first segment before the last underscore+hash."""
+    filename = blob.name.rsplit("/", 1)[-1]
+    name = filename.rsplit(".", 1)[0]
+    # Clip filenames are {video_id}_{hash}.mp4 — split on the last underscore
+    parts = name.rsplit("_", 1)
+    return parts[0] if len(parts) == 2 else name
 
 
-def generate_clips_for_video(
-    delivery_id: str, num_clips: int, bucket_name: str = BUCKET_NAME
-) -> list[dict]:
-    """Generate random clip metadata entries for a single video."""
+def random_fraction() -> float:
+    """Generate a random fraction, biased toward 0 and 1."""
+    r = random.random()
+    if r < 0.4:
+        return 0.0
+    if r < 0.7:
+        return 1.0
+    return round(random.random(), 8)
+
+
+def generate_clip(video_id: str, clip_uri: str, start: int, duration: int) -> dict:
+    return {
+        "video_id": video_id,
+        "uri": clip_uri,
+        "clip_start_time": str(start),
+        "clip_end_time": str(start + duration),
+        "clip_duration": duration,
+        "one_hand_presence_fraction": str(random_fraction()),
+        "two_hands_presence_fraction": random_fraction(),
+        "phone_screen_presence_fraction": str(random_fraction()),
+        "pc_screen_presence_fraction": str(random_fraction()),
+        "other_screen_presence_fraction": str(random_fraction()),
+        "is_egocentric_fraction": str(random_fraction()),
+        "waist_visible_fraction": random_fraction(),
+        "well_lit_fraction": str(random_fraction()),
+        "has_overlay_fraction": str(random_fraction()),
+    }
+
+
+def generate_clips_for_video(video_id: str, num_clips: int, sample_prefix: str) -> list[dict]:
     clips = []
-    cursor = 0.0
+    cursor = 0
 
-    for i in range(num_clips):
-        gap = round(random.uniform(1.0, 20.0), 2)
-        start = round(cursor + gap, 2)
-        duration = round(random.uniform(MIN_CLIP_DURATION, MAX_CLIP_DURATION), 2)
-        end = round(start + duration, 2)
+    for _ in range(num_clips):
+        gap = random.randint(1, 60)
+        start = cursor + gap
+        duration = random.randint(MIN_CLIP_DURATION, MAX_CLIP_DURATION)
+        clip_hash = f"{random.getrandbits(64):016x}"
+        uri = f"gs://{BUCKET_NAME}/{sample_prefix}clips/{video_id}_{clip_hash}.mp4"
 
-        clip = {
-            "delivery_id": delivery_id,
-            "uri": f"gs://{bucket_name}/videos/{delivery_id}_clip_{i + 1}.mp4",
-            "clip_start_time": start,
-            "clip_end_time": end,
-            "clip_duration": duration,
-            "avg_face_size": random.randint(50, 200),
-            "max_num_faces": random.randint(0, 5),
-            "is_full_body": random.choice([True, False]),
-            "has_overlay": random.choice([True, False]),
-        }
-        clips.append(clip)
-        cursor = end
+        clips.append(generate_clip(video_id, uri, start, duration))
+        cursor = start + duration
 
     return clips
 
 
-def generate_video_metadata(delivery_id: str) -> dict:
-    """Generate random video-level metadata for a delivery_id."""
+def generate_video_metadata(video_id: str) -> dict:
     width, height = random.choice(RESOLUTION_OPTIONS)
     return {
-        "delivery_id": delivery_id,
+        "width": str(width),
+        "height": str(height),
         "fps": random.choice(FPS_OPTIONS),
-        "height": height,
-        "width": width,
-        "source": random.choice(SOURCE_OPTIONS),
-        "language": random.choice(LANGUAGE_OPTIONS),
+        "has_black_bars": random.choice([True, False]),
+        "is_upright": random.choice([True, True, True, False]),  # mostly upright
+        "video_id": video_id,
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate sample clip metadata from GCS videos")
-    parser.add_argument("--prefix", default=None, help="GCS prefix to filter videos")
-    parser.add_argument("--samples", type=int, default=None, help="Number of clips to generate (spread across videos)")
-    parser.add_argument("--output", default=None, help="Output file path (default: stdout)")
+    parser.add_argument("--prefix", default=None, help="GCS prefix to filter videos (e.g. sample2/clips/)")
+    parser.add_argument("--samples", type=int, default=None, help="Total number of clips to generate")
     parser.add_argument("--clips-per-video", type=int, default=None, help="Clips per video (overrides --samples)")
+    parser.add_argument("--output-dir", default=None, help="Output directory for JSONL files (default: stdout)")
     args = parser.parse_args()
 
     print(f"Listing videos in gs://{BUCKET_NAME}/{args.prefix or ''}...", file=sys.stderr)
@@ -99,54 +114,74 @@ def main():
         print("No video files found in bucket.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Found {len(blobs)} videos.", file=sys.stderr)
+    # Deduplicate by video_id
+    video_ids = list({video_id_from_blob(b) for b in blobs})
+    video_ids.sort()
+    print(f"Found {len(blobs)} clips across {len(video_ids)} unique videos.", file=sys.stderr)
 
     # Determine sample count
     total_samples = args.samples
-    if total_samples is None:
+    if total_samples is None and args.clips_per_video is None:
+        default = len(video_ids) * 2
         try:
-            total_samples = int(input(f"How many sample clips to generate? [{len(blobs) * 2}]: ").strip() or len(blobs) * 2)
+            total_samples = int(input(f"How many sample clips to generate? [{default}]: ").strip() or default)
         except (EOFError, KeyboardInterrupt):
-            total_samples = len(blobs) * 2
+            total_samples = default
             print(f"\nUsing default: {total_samples}", file=sys.stderr)
 
-    # Distribute clips across videos
-    delivery_ids = []
-    for blob in blobs:
-        did = delivery_id_from_blob(blob)
-        delivery_ids.append(did)
+    # Figure out the sample prefix for URIs
+    sample_prefix = ""
+    if args.prefix:
+        # e.g. "sample2/clips/" -> "sample2/"
+        parts = args.prefix.rstrip("/").split("/")
+        if len(parts) > 1:
+            sample_prefix = "/".join(parts[:-1]) + "/"
+        else:
+            sample_prefix = parts[0] + "/"
 
+    # Distribute clips across videos
     if args.clips_per_video is not None:
-        clips_per = {did: args.clips_per_video for did in delivery_ids}
+        clips_per = {vid: args.clips_per_video for vid in video_ids}
     else:
-        # Spread samples across videos, at least 1 per video
-        base = max(1, total_samples // len(delivery_ids))
-        remainder = total_samples - base * len(delivery_ids)
-        clips_per = {did: base for did in delivery_ids}
-        for did in random.sample(delivery_ids, min(abs(remainder), len(delivery_ids))):
-            clips_per[did] += 1 if remainder > 0 else 0
+        base = max(1, total_samples // len(video_ids))
+        remainder = total_samples - base * len(video_ids)
+        clips_per = {vid: base for vid in video_ids}
+        extras = random.sample(video_ids, min(abs(remainder), len(video_ids)))
+        for vid in extras:
+            clips_per[vid] += 1 if remainder > 0 else 0
 
     # Generate metadata
     all_clips = []
     all_videos = []
 
-    for did in delivery_ids:
-        all_videos.append(generate_video_metadata(did))
-        all_clips.extend(generate_clips_for_video(did, clips_per[did]))
+    for vid in video_ids:
+        all_videos.append(generate_video_metadata(vid))
+        all_clips.extend(generate_clips_for_video(vid, clips_per[vid], sample_prefix))
 
-    output = {
-        "clips": all_clips,
-        "videos": all_videos,
-    }
+    clip_lines = [json.dumps(c) for c in all_clips]
+    video_lines = [json.dumps(v) for v in all_videos]
 
-    result = json.dumps(output, indent=2)
+    if args.output_dir:
+        import os
+        os.makedirs(args.output_dir, exist_ok=True)
 
-    if args.output:
-        with open(args.output, "w") as f:
-            f.write(result)
-        print(f"Wrote {len(all_clips)} clips and {len(all_videos)} videos to {args.output}", file=sys.stderr)
+        clip_path = os.path.join(args.output_dir, "clip_metadata.jsonl")
+        video_path = os.path.join(args.output_dir, "video_metadata.jsonl")
+
+        with open(clip_path, "w") as f:
+            f.write("\n".join(clip_lines) + "\n")
+        with open(video_path, "w") as f:
+            f.write("\n".join(video_lines) + "\n")
+
+        print(f"Wrote {len(all_clips)} clips to {clip_path}", file=sys.stderr)
+        print(f"Wrote {len(all_videos)} videos to {video_path}", file=sys.stderr)
     else:
-        print(result)
+        print("=== clip_metadata.jsonl ===")
+        for line in clip_lines:
+            print(line)
+        print("\n=== video_metadata.jsonl ===")
+        for line in video_lines:
+            print(line)
 
     print(f"\nGenerated {len(all_clips)} clips across {len(all_videos)} videos.", file=sys.stderr)
 

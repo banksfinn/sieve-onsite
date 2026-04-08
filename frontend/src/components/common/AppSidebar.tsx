@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LogOut, Package, Database, Shield, User, UserX, type LucideIcon } from 'lucide-react';
+import { Home, LogOut, Database, Shield, User, UserX, Wrench, type LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { clearUser, setUser, useCurrentUser } from '@/store/components/authSlice';
@@ -66,7 +66,6 @@ function getNavGroups(role?: string, accessLevel?: string): NavGroup[] {
         main.push({ title: 'Datasets', url: '/datasets', icon: Database });
     }
 
-    main.push({ title: 'Deliveries', url: '/deliveries', icon: Package });
     main.push({ title: 'Profile', url: '/profile', icon: User });
 
     const groups: NavGroup[] = [{ label: 'Main', items: main }];
@@ -74,7 +73,10 @@ function getNavGroups(role?: string, accessLevel?: string): NavGroup[] {
     if (accessLevel === 'admin') {
         groups.push({
             label: 'Admin',
-            items: [{ title: 'Admin Panel', url: '/admin', icon: Shield }],
+            items: [
+                { title: 'Admin Panel', url: '/admin', icon: Shield },
+                { title: 'Seed Dataset', url: '/tools/seed-dataset', icon: Wrench },
+            ],
         });
     }
 

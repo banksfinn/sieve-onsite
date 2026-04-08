@@ -22,18 +22,18 @@ Be concise and specific. Use bullet points. Reference clip counts where relevant
 
 
 class FeedbackSummary(BaseModel):
-    delivery_id: int
+    dataset_id: int
     total_feedback_count: int
     summary: str
 
 
-async def summarize_delivery_feedback(delivery_id: int, feedback_items: list[ClipFeedback]) -> FeedbackSummary:
-    """Summarize clip feedback for a delivery using the LLM."""
+async def summarize_dataset_feedback(dataset_id: int, feedback_items: list[ClipFeedback]) -> FeedbackSummary:
+    """Summarize clip feedback for a dataset using the LLM."""
     if not feedback_items:
         return FeedbackSummary(
-            delivery_id=delivery_id,
+            dataset_id=dataset_id,
             total_feedback_count=0,
-            summary="No feedback has been submitted for this delivery yet.",
+            summary="No feedback has been submitted for this dataset yet.",
         )
 
     feedback_text = _format_feedback_for_llm(feedback_items)
@@ -53,7 +53,7 @@ async def summarize_delivery_feedback(delivery_id: int, feedback_items: list[Cli
     )
 
     return FeedbackSummary(
-        delivery_id=delivery_id,
+        dataset_id=dataset_id,
         total_feedback_count=len(feedback_items),
         summary=response.content or "Unable to generate summary.",
     )
@@ -61,7 +61,7 @@ async def summarize_delivery_feedback(delivery_id: int, feedback_items: list[Cli
 
 def _format_feedback_for_llm(feedback_items: list[ClipFeedback]) -> str:
     """Format feedback entries into a text block for the LLM."""
-    lines = [f"Feedback for delivery with {len(feedback_items)} clip reviews:\n"]
+    lines = [f"Feedback for dataset with {len(feedback_items)} clip reviews:\n"]
 
     for fb in feedback_items:
         parts = [f"- Clip #{fb.clip_id}: rating={fb.rating.value}"]

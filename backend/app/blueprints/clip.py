@@ -6,7 +6,8 @@ from database_manager.blueprints.base_entity import (
     BaseEntityUpdateRequest,
 )
 from database_manager.schemas.table_names import clip_table_name
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String
+from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -19,10 +20,7 @@ class ClipModel(BaseEntityModel):
     start_time: Mapped[float] = mapped_column(Float, nullable=False)
     end_time: Mapped[float] = mapped_column(Float, nullable=False)
     duration: Mapped[float] = mapped_column(Float, nullable=False)
-    avg_face_size: Mapped[float | None] = mapped_column(Float, nullable=True)
-    max_num_faces: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    is_full_body: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    has_overlay: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    extra_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
 class Clip(BaseEntity):
@@ -32,10 +30,7 @@ class Clip(BaseEntity):
     start_time: float
     end_time: float
     duration: float
-    avg_face_size: float | None = None
-    max_num_faces: int | None = None
-    is_full_body: bool | None = None
-    has_overlay: bool | None = None
+    extra_metadata: dict | None = None
 
 
 class ClipCreateRequest(BaseEntityCreateRequest):
@@ -45,17 +40,11 @@ class ClipCreateRequest(BaseEntityCreateRequest):
     start_time: float
     end_time: float
     duration: float
-    avg_face_size: float | None = None
-    max_num_faces: int | None = None
-    is_full_body: bool | None = None
-    has_overlay: bool | None = None
+    extra_metadata: dict | None = None
 
 
 class ClipUpdateRequest(BaseEntityUpdateRequest):
-    avg_face_size: float | None = None
-    max_num_faces: int | None = None
-    is_full_body: bool | None = None
-    has_overlay: bool | None = None
+    extra_metadata: dict | None = None
 
 
 class ClipQuery(BaseEntityQuery):
