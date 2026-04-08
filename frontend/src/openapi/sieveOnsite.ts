@@ -29,6 +29,21 @@ export const AccessLevel = {
     admin: 'admin',
 } as const;
 
+export interface ActiveComment {
+    review: DatasetReview;
+    replies: DatasetReviewReply[];
+    clip_removed?: boolean;
+    auto_completed?: boolean;
+}
+
+export type ActiveCommentsResponseByClip = { [key: string]: ActiveComment[] };
+
+export interface ActiveCommentsResponse {
+    top_level: ActiveComment[];
+    by_clip: ActiveCommentsResponseByClip;
+    auto_completed_count: number;
+}
+
 export interface BaseEntitySearchResponseClipFeedback {
     entities: ClipFeedback[];
     metadata: SearchResponseMetadata;
@@ -41,6 +56,16 @@ export interface BaseEntitySearchResponseClip {
 
 export interface BaseEntitySearchResponseDatasetAssignment {
     entities: DatasetAssignment[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDatasetReviewReply {
+    entities: DatasetReviewReply[];
+    metadata: SearchResponseMetadata;
+}
+
+export interface BaseEntitySearchResponseDatasetReview {
+    entities: DatasetReview[];
     metadata: SearchResponseMetadata;
 }
 
@@ -87,6 +112,16 @@ export interface BaseEntitySearchResponseUser {
 export interface BaseEntitySearchResponseVideo {
     entities: Video[];
     metadata: SearchResponseMetadata;
+}
+
+export interface BatchSignedUrlRequest {
+    clip_ids: number[];
+}
+
+export type BatchSignedUrlResponseUrls = { [key: string]: string };
+
+export interface BatchSignedUrlResponse {
+    urls: BatchSignedUrlResponseUrls;
 }
 
 export type ClipExtraMetadataAnyOf = { [key: string]: unknown };
@@ -190,19 +225,6 @@ export interface ClipMetadataEntry {
     extra_metadata?: ClipMetadataEntryExtraMetadata;
 }
 
-export type ClipQueryVideoId = number | null;
-
-export type ClipQueryDatasetVersionId = number | null;
-
-export interface ClipQuery {
-    limit?: number;
-    offset?: number;
-    sort_by?: string;
-    sort_order?: SortOrder;
-    video_id?: ClipQueryVideoId;
-    dataset_version_id?: ClipQueryDatasetVersionId;
-}
-
 export type ClipRating = (typeof ClipRating)[keyof typeof ClipRating];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -219,8 +241,11 @@ export interface CreateFakeUserRequest {
     access_level?: AccessLevel;
 }
 
+export type CreateVersionFromClipsRequestCommitMessage = string | null;
+
 export interface CreateVersionFromClipsRequest {
     clip_ids: number[];
+    commit_message?: CreateVersionFromClipsRequestCommitMessage;
 }
 
 export interface CreateVersionFromClipsResponse {
@@ -238,7 +263,8 @@ export interface Dataset {
     updated_at: string;
     name: string;
     description?: DatasetDescription;
-    status?: string;
+    lifecycle?: string;
+    request_status?: string;
     bucket_path?: DatasetBucketPath;
 }
 
@@ -255,22 +281,6 @@ export interface DatasetAssignmentCreateRequest {
     dataset_id: number;
     user_id: number;
     role: string;
-}
-
-export type DatasetAssignmentQueryDatasetId = number | null;
-
-export type DatasetAssignmentQueryUserId = number | null;
-
-export type DatasetAssignmentQueryRole = string | null;
-
-export interface DatasetAssignmentQuery {
-    limit?: number;
-    offset?: number;
-    sort_by?: string;
-    sort_order?: SortOrder;
-    dataset_id?: DatasetAssignmentQueryDatasetId;
-    user_id?: DatasetAssignmentQueryUserId;
-    role?: DatasetAssignmentQueryRole;
 }
 
 export type DatasetCreateFromBucketRequestDescription = string | null;
@@ -304,29 +314,75 @@ export interface DatasetIngestRequest {
 
 export interface DatasetIngestResponse {
     dataset: Dataset;
-    version: DatasetVersion;
-    videos_created: number;
-    clips_created: number;
 }
 
-export type DatasetQueryName = string | null;
+export type DatasetReviewClipId = number | null;
 
-export type DatasetQueryStatus = string | null;
+export type DatasetReviewClipTimestamp = number | null;
 
-export interface DatasetQuery {
-    limit?: number;
-    offset?: number;
-    sort_by?: string;
-    sort_order?: SortOrder;
-    name?: DatasetQueryName;
-    status?: DatasetQueryStatus;
+export type DatasetReviewResolvedInVersionId = number | null;
+
+export interface DatasetReview {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    dataset_id: number;
+    dataset_version_id: number;
+    user_id: number;
+    review_type: ReviewType;
+    clip_id?: DatasetReviewClipId;
+    clip_timestamp?: DatasetReviewClipTimestamp;
+    comment: string;
+    status?: ReviewStatus;
+    resolved_in_version_id?: DatasetReviewResolvedInVersionId;
+}
+
+export type DatasetReviewCreateRequestClipId = number | null;
+
+export type DatasetReviewCreateRequestClipTimestamp = number | null;
+
+export interface DatasetReviewCreateRequest {
+    dataset_id: number;
+    dataset_version_id: number;
+    user_id: number;
+    review_type: ReviewType;
+    clip_id?: DatasetReviewCreateRequestClipId;
+    clip_timestamp?: DatasetReviewCreateRequestClipTimestamp;
+    comment: string;
+}
+
+export interface DatasetReviewReply {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    review_id: number;
+    user_id: number;
+    comment: string;
+}
+
+export interface DatasetReviewReplyCreateRequest {
+    review_id: number;
+    user_id: number;
+    comment: string;
+}
+
+export type DatasetReviewUpdateRequestStatus = ReviewStatus | null;
+
+export type DatasetReviewUpdateRequestResolvedInVersionId = number | null;
+
+export interface DatasetReviewUpdateRequest {
+    id: number;
+    status?: DatasetReviewUpdateRequestStatus;
+    resolved_in_version_id?: DatasetReviewUpdateRequestResolvedInVersionId;
 }
 
 export type DatasetUpdateRequestName = string | null;
 
 export type DatasetUpdateRequestDescription = string | null;
 
-export type DatasetUpdateRequestStatus = string | null;
+export type DatasetUpdateRequestLifecycle = string | null;
+
+export type DatasetUpdateRequestRequestStatus = string | null;
 
 export type DatasetUpdateRequestBucketPath = string | null;
 
@@ -334,11 +390,14 @@ export interface DatasetUpdateRequest {
     id: number;
     name?: DatasetUpdateRequestName;
     description?: DatasetUpdateRequestDescription;
-    status?: DatasetUpdateRequestStatus;
+    lifecycle?: DatasetUpdateRequestLifecycle;
+    request_status?: DatasetUpdateRequestRequestStatus;
     bucket_path?: DatasetUpdateRequestBucketPath;
 }
 
 export type DatasetVersionParentVersionId = number | null;
+
+export type DatasetVersionCommitMessage = string | null;
 
 export interface DatasetVersion {
     id: number;
@@ -348,6 +407,7 @@ export interface DatasetVersion {
     version_number: number;
     parent_version_id?: DatasetVersionParentVersionId;
     created_by: number;
+    commit_message?: DatasetVersionCommitMessage;
 }
 
 export interface DatasetVersionVideo {
@@ -440,22 +500,6 @@ export const DeliveryFeedbackStatus = {
     needs_changes: 'needs_changes',
     rejected: 'rejected',
 } as const;
-
-export type DeliveryQueryStatus = DeliveryStatus | null;
-
-export type DeliveryQueryDatasetVersionId = number | null;
-
-export type DeliveryQueryCreatedBy = number | null;
-
-export interface DeliveryQuery {
-    limit?: number;
-    offset?: number;
-    sort_by?: string;
-    sort_order?: SortOrder;
-    status?: DeliveryQueryStatus;
-    dataset_version_id?: DeliveryQueryDatasetVersionId;
-    created_by?: DeliveryQueryCreatedBy;
-}
 
 export type DeliveryStatus = (typeof DeliveryStatus)[keyof typeof DeliveryStatus];
 
@@ -550,10 +594,49 @@ export interface InvitationQuery {
     accepted?: InvitationQueryAccepted;
 }
 
+export type PreviewMetadataRequestMaxClips = number | null;
+
+export interface PreviewMetadataRequest {
+    bucket_path: string;
+    max_clips?: PreviewMetadataRequestMaxClips;
+}
+
+export type PreviewMetadataResponseClipsItem = { [key: string]: unknown };
+
+export type PreviewMetadataResponseVideosItem = { [key: string]: unknown };
+
+export interface PreviewMetadataResponse {
+    clips: PreviewMetadataResponseClipsItem[];
+    videos: PreviewMetadataResponseVideosItem[];
+    total_clips: number;
+    total_videos: number;
+}
+
+export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ReviewStatus = {
+    open: 'open',
+    closed: 'closed',
+    auto_completed: 'auto_completed',
+} as const;
+
+export type ReviewType = (typeof ReviewType)[keyof typeof ReviewType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ReviewType = {
+    review: 'review',
+    request_for_deletion: 'request_for_deletion',
+} as const;
+
 export interface SearchResponseMetadata {
     total_count: number;
     limit: number;
     offset: number;
+}
+
+export interface SignedUrlResponse {
+    signed_url: string;
 }
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
@@ -658,15 +741,39 @@ export interface VideoCreateRequest {
     extra_metadata?: VideoCreateRequestExtraMetadata;
 }
 
-export type VideoQueryDeliveryId = string | null;
+export type SearchDatasetsParams = {
+    name?: string | null;
+    lifecycle?: string | null;
+    request_status?: string | null;
+};
 
-export interface VideoQuery {
-    limit?: number;
-    offset?: number;
-    sort_by?: string;
-    sort_order?: SortOrder;
-    delivery_id?: VideoQueryDeliveryId;
-}
+export type SearchAssignmentsParams = {
+    dataset_id?: number | null;
+    user_id?: number | null;
+    role?: string | null;
+};
+
+export type SearchReviewsParams = {
+    dataset_version_id?: number | null;
+    clip_id?: number | null;
+    status?: ReviewStatus | null;
+    review_type?: ReviewType | null;
+};
+
+export type SearchVideosParams = {
+    delivery_id?: string | null;
+};
+
+export type SearchClipsParams = {
+    video_id?: number | null;
+    dataset_version_id?: number | null;
+};
+
+export type SearchDeliveriesParams = {
+    status?: DeliveryStatus | null;
+    dataset_version_id?: number | null;
+    created_by?: number | null;
+};
 
 /**
  * @summary List All Users
@@ -919,34 +1026,34 @@ export const useRefreshToken = <TError = unknown, TContext = unknown>(
 /**
  * @summary Search Datasets
  */
-export const searchDatasets = (datasetQuery: DatasetQuery, signal?: AbortSignal) => {
+export const searchDatasets = (params?: SearchDatasetsParams, signal?: AbortSignal) => {
     return customAxios<BaseEntitySearchResponseDataset>({
         url: `/api/gateway/dataset`,
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        params,
         signal,
     });
 };
 
-export const getSearchDatasetsQueryKey = (datasetQuery?: DatasetQuery) => {
-    return [`/api/gateway/dataset`, datasetQuery] as const;
+export const getSearchDatasetsQueryKey = (params?: SearchDatasetsParams) => {
+    return [`/api/gateway/dataset`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchDatasetsQueryOptions = <
     TData = Awaited<ReturnType<typeof searchDatasets>>,
     TError = HTTPValidationError,
 >(
-    datasetQuery: DatasetQuery,
+    params?: SearchDatasetsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
     }
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchDatasetsQueryKey(datasetQuery);
+    const queryKey = queryOptions?.queryKey ?? getSearchDatasetsQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDatasets>>> = ({ signal }) =>
-        searchDatasets(datasetQuery, signal);
+        searchDatasets(params, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof searchDatasets>>,
@@ -962,7 +1069,7 @@ export function useSearchDatasets<
     TData = Awaited<ReturnType<typeof searchDatasets>>,
     TError = HTTPValidationError,
 >(
-    datasetQuery: DatasetQuery,
+    params: undefined | SearchDatasetsParams,
     options: {
         query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>> &
             Pick<
@@ -980,7 +1087,7 @@ export function useSearchDatasets<
     TData = Awaited<ReturnType<typeof searchDatasets>>,
     TError = HTTPValidationError,
 >(
-    datasetQuery: DatasetQuery,
+    params?: SearchDatasetsParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>
@@ -1000,7 +1107,7 @@ export function useSearchDatasets<
     TData = Awaited<ReturnType<typeof searchDatasets>>,
     TError = HTTPValidationError,
 >(
-    datasetQuery: DatasetQuery,
+    params?: SearchDatasetsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
     },
@@ -1014,13 +1121,13 @@ export function useSearchDatasets<
     TData = Awaited<ReturnType<typeof searchDatasets>>,
     TError = HTTPValidationError,
 >(
-    datasetQuery: DatasetQuery,
+    params?: SearchDatasetsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDatasets>>, TError, TData>>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchDatasetsQueryOptions(datasetQuery, options);
+    const queryOptions = getSearchDatasetsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -1032,10 +1139,11 @@ export function useSearchDatasets<
 }
 
 /**
- * Create a dataset. If bucket_path is provided, ingest metadata from GCS.
+ * Create a dataset. If bucket_path is provided, kick off background ingestion.
 
-With bucket_path: fetches metadata, creates version 1 (clips),
-sets status to active. Without bucket_path: creates dataset in requested status.
+With bucket_path: sets status to initialized and returns immediately while
+ingestion runs in the background. Without bucket_path: creates dataset in
+requested status.
 
 Only GTM and customer roles can create datasets. Researchers cannot.
 The creator is auto-assigned: GTM as gtm_lead, customer as customer.
@@ -1375,11 +1483,10 @@ export const useDeleteDataset = <TError = HTTPValidationError, TContext = unknow
 };
 
 /**
- * Attach a GCS bucket to an existing dataset and ingest its metadata.
+ * Attach a GCS bucket to an existing dataset and kick off background ingestion.
 
-Creates version 0 (source videos) and version 1 (clips), transitions
-the dataset to active status. Intended for GTM/researchers to fulfill
-a customer-requested dataset.
+Sets status to initialized and returns immediately. Ingestion runs in the
+background and flips status to active on completion.
  * @summary Ingest Dataset
  */
 export const ingestDataset = (
@@ -2490,29 +2597,111 @@ export const useSummarizeFeedback = <TError = HTTPValidationError, TContext = un
 };
 
 /**
- * @summary Search Assignments
+ * Read clip and video metadata from a GCS bucket and return a (sampled) preview.
+
+Reads the actual metadata files from the bucket so URIs point to real blobs.
+If max_clips is set, returns a random sample.
+ * @summary Preview Metadata
  */
-export const searchAssignments = (
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+export const previewMetadata = (
+    previewMetadataRequest: PreviewMetadataRequest,
     signal?: AbortSignal
 ) => {
-    return customAxios<BaseEntitySearchResponseDatasetAssignment>({
-        url: `/api/gateway/dataset-assignment`,
-        method: 'GET',
+    return customAxios<PreviewMetadataResponse>({
+        url: `/api/gateway/dataset/preview-metadata`,
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        data: previewMetadataRequest,
         signal,
     });
 };
 
-export const getSearchAssignmentsQueryKey = (datasetAssignmentQuery?: DatasetAssignmentQuery) => {
-    return [`/api/gateway/dataset-assignment`, datasetAssignmentQuery] as const;
+export const getPreviewMetadataMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof previewMetadata>>,
+        TError,
+        { data: PreviewMetadataRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof previewMetadata>>,
+    TError,
+    { data: PreviewMetadataRequest },
+    TContext
+> => {
+    const mutationKey = ['previewMetadata'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof previewMetadata>>,
+        { data: PreviewMetadataRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return previewMetadata(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type PreviewMetadataMutationResult = NonNullable<
+    Awaited<ReturnType<typeof previewMetadata>>
+>;
+export type PreviewMetadataMutationBody = PreviewMetadataRequest;
+export type PreviewMetadataMutationError = HTTPValidationError;
+
+/**
+ * @summary Preview Metadata
+ */
+export const usePreviewMetadata = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof previewMetadata>>,
+            TError,
+            { data: PreviewMetadataRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof previewMetadata>>,
+    TError,
+    { data: PreviewMetadataRequest },
+    TContext
+> => {
+    const mutationOptions = getPreviewMetadataMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Assignments
+ */
+export const searchAssignments = (params?: SearchAssignmentsParams, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDatasetAssignment>({
+        url: `/api/gateway/dataset-assignment`,
+        method: 'GET',
+        params,
+        signal,
+    });
+};
+
+export const getSearchAssignmentsQueryKey = (params?: SearchAssignmentsParams) => {
+    return [`/api/gateway/dataset-assignment`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchAssignmentsQueryOptions = <
     TData = Awaited<ReturnType<typeof searchAssignments>>,
     TError = HTTPValidationError,
 >(
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+    params?: SearchAssignmentsParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
@@ -2521,10 +2710,10 @@ export const getSearchAssignmentsQueryOptions = <
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchAssignmentsQueryKey(datasetAssignmentQuery);
+    const queryKey = queryOptions?.queryKey ?? getSearchAssignmentsQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof searchAssignments>>> = ({ signal }) =>
-        searchAssignments(datasetAssignmentQuery, signal);
+        searchAssignments(params, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof searchAssignments>>,
@@ -2542,7 +2731,7 @@ export function useSearchAssignments<
     TData = Awaited<ReturnType<typeof searchAssignments>>,
     TError = HTTPValidationError,
 >(
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+    params: undefined | SearchAssignmentsParams,
     options: {
         query: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
@@ -2562,7 +2751,7 @@ export function useSearchAssignments<
     TData = Awaited<ReturnType<typeof searchAssignments>>,
     TError = HTTPValidationError,
 >(
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+    params?: SearchAssignmentsParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
@@ -2582,7 +2771,7 @@ export function useSearchAssignments<
     TData = Awaited<ReturnType<typeof searchAssignments>>,
     TError = HTTPValidationError,
 >(
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+    params?: SearchAssignmentsParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
@@ -2598,7 +2787,7 @@ export function useSearchAssignments<
     TData = Awaited<ReturnType<typeof searchAssignments>>,
     TError = HTTPValidationError,
 >(
-    datasetAssignmentQuery: DatasetAssignmentQuery,
+    params?: SearchAssignmentsParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchAssignments>>, TError, TData>
@@ -2606,7 +2795,7 @@ export function useSearchAssignments<
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchAssignmentsQueryOptions(datasetAssignmentQuery, options);
+    const queryOptions = getSearchAssignmentsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -2774,36 +2963,656 @@ export const useDeleteAssignment = <TError = HTTPValidationError, TContext = unk
 };
 
 /**
- * @summary Search Videos
+ * @summary Search Reviews
  */
-export const searchVideos = (videoQuery: VideoQuery, signal?: AbortSignal) => {
-    return customAxios<BaseEntitySearchResponseVideo>({
-        url: `/api/gateway/video`,
+export const searchReviews = (
+    datasetId: number,
+    params?: SearchReviewsParams,
+    signal?: AbortSignal
+) => {
+    return customAxios<BaseEntitySearchResponseDatasetReview>({
+        url: `/api/gateway/dataset/${datasetId}/review`,
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        params,
         signal,
     });
 };
 
-export const getSearchVideosQueryKey = (videoQuery?: VideoQuery) => {
-    return [`/api/gateway/video`, videoQuery] as const;
+export const getSearchReviewsQueryKey = (datasetId?: number, params?: SearchReviewsParams) => {
+    return [`/api/gateway/dataset/${datasetId}/review`, ...(params ? [params] : [])] as const;
+};
+
+export const getSearchReviewsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchReviews>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    params?: SearchReviewsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReviews>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchReviewsQueryKey(datasetId, params);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchReviews>>> = ({ signal }) =>
+        searchReviews(datasetId, params, signal);
+
+    return { queryKey, queryFn, enabled: !!datasetId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof searchReviews>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type SearchReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof searchReviews>>>;
+export type SearchReviewsQueryError = HTTPValidationError;
+
+export function useSearchReviews<
+    TData = Awaited<ReturnType<typeof searchReviews>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    params: undefined | SearchReviewsParams,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReviews>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchReviews>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchReviews>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchReviews<
+    TData = Awaited<ReturnType<typeof searchReviews>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    params?: SearchReviewsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReviews>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchReviews>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchReviews>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchReviews<
+    TData = Awaited<ReturnType<typeof searchReviews>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    params?: SearchReviewsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReviews>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Reviews
+ */
+
+export function useSearchReviews<
+    TData = Awaited<ReturnType<typeof searchReviews>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    params?: SearchReviewsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReviews>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchReviewsQueryOptions(datasetId, params, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Review
+ */
+export const createReview = (
+    datasetId: number,
+    versionId: number,
+    datasetReviewCreateRequest: DatasetReviewCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DatasetReview>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/review`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetReviewCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateReviewMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createReview>>,
+        TError,
+        { datasetId: number; versionId: number; data: DatasetReviewCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createReview>>,
+    TError,
+    { datasetId: number; versionId: number; data: DatasetReviewCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createReview'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createReview>>,
+        { datasetId: number; versionId: number; data: DatasetReviewCreateRequest }
+    > = (props) => {
+        const { datasetId, versionId, data } = props ?? {};
+
+        return createReview(datasetId, versionId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof createReview>>>;
+export type CreateReviewMutationBody = DatasetReviewCreateRequest;
+export type CreateReviewMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Review
+ */
+export const useCreateReview = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createReview>>,
+            TError,
+            { datasetId: number; versionId: number; data: DatasetReviewCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createReview>>,
+    TError,
+    { datasetId: number; versionId: number; data: DatasetReviewCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateReviewMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Update Review
+ */
+export const updateReview = (
+    datasetId: number,
+    reviewId: number,
+    datasetReviewUpdateRequest: DatasetReviewUpdateRequest
+) => {
+    return customAxios<DatasetReview>({
+        url: `/api/gateway/dataset/${datasetId}/review/${reviewId}`,
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetReviewUpdateRequest,
+    });
+};
+
+export const getUpdateReviewMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof updateReview>>,
+        TError,
+        { datasetId: number; reviewId: number; data: DatasetReviewUpdateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof updateReview>>,
+    TError,
+    { datasetId: number; reviewId: number; data: DatasetReviewUpdateRequest },
+    TContext
+> => {
+    const mutationKey = ['updateReview'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof updateReview>>,
+        { datasetId: number; reviewId: number; data: DatasetReviewUpdateRequest }
+    > = (props) => {
+        const { datasetId, reviewId, data } = props ?? {};
+
+        return updateReview(datasetId, reviewId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof updateReview>>>;
+export type UpdateReviewMutationBody = DatasetReviewUpdateRequest;
+export type UpdateReviewMutationError = HTTPValidationError;
+
+/**
+ * @summary Update Review
+ */
+export const useUpdateReview = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof updateReview>>,
+            TError,
+            { datasetId: number; reviewId: number; data: DatasetReviewUpdateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof updateReview>>,
+    TError,
+    { datasetId: number; reviewId: number; data: DatasetReviewUpdateRequest },
+    TContext
+> => {
+    const mutationOptions = getUpdateReviewMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Replies
+ */
+export const searchReplies = (datasetId: number, reviewId: number, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDatasetReviewReply>({
+        url: `/api/gateway/dataset/${datasetId}/review/${reviewId}/reply`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getSearchRepliesQueryKey = (datasetId?: number, reviewId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/review/${reviewId}/reply`] as const;
+};
+
+export const getSearchRepliesQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchReplies>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    reviewId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData>>;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getSearchRepliesQueryKey(datasetId, reviewId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchReplies>>> = ({ signal }) =>
+        searchReplies(datasetId, reviewId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && reviewId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type SearchRepliesQueryResult = NonNullable<Awaited<ReturnType<typeof searchReplies>>>;
+export type SearchRepliesQueryError = HTTPValidationError;
+
+export function useSearchReplies<
+    TData = Awaited<ReturnType<typeof searchReplies>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    reviewId: number,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchReplies>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchReplies>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchReplies<
+    TData = Awaited<ReturnType<typeof searchReplies>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    reviewId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof searchReplies>>,
+                    TError,
+                    Awaited<ReturnType<typeof searchReplies>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useSearchReplies<
+    TData = Awaited<ReturnType<typeof searchReplies>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    reviewId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Search Replies
+ */
+
+export function useSearchReplies<
+    TData = Awaited<ReturnType<typeof searchReplies>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    reviewId: number,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchReplies>>, TError, TData>>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getSearchRepliesQueryOptions(datasetId, reviewId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Create Reply
+ */
+export const createReply = (
+    datasetId: number,
+    reviewId: number,
+    datasetReviewReplyCreateRequest: DatasetReviewReplyCreateRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<DatasetReviewReply>({
+        url: `/api/gateway/dataset/${datasetId}/review/${reviewId}/reply`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: datasetReviewReplyCreateRequest,
+        signal,
+    });
+};
+
+export const getCreateReplyMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof createReply>>,
+        TError,
+        { datasetId: number; reviewId: number; data: DatasetReviewReplyCreateRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof createReply>>,
+    TError,
+    { datasetId: number; reviewId: number; data: DatasetReviewReplyCreateRequest },
+    TContext
+> => {
+    const mutationKey = ['createReply'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof createReply>>,
+        { datasetId: number; reviewId: number; data: DatasetReviewReplyCreateRequest }
+    > = (props) => {
+        const { datasetId, reviewId, data } = props ?? {};
+
+        return createReply(datasetId, reviewId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type CreateReplyMutationResult = NonNullable<Awaited<ReturnType<typeof createReply>>>;
+export type CreateReplyMutationBody = DatasetReviewReplyCreateRequest;
+export type CreateReplyMutationError = HTTPValidationError;
+
+/**
+ * @summary Create Reply
+ */
+export const useCreateReply = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof createReply>>,
+            TError,
+            { datasetId: number; reviewId: number; data: DatasetReviewReplyCreateRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof createReply>>,
+    TError,
+    { datasetId: number; reviewId: number; data: DatasetReviewReplyCreateRequest },
+    TContext
+> => {
+    const mutationOptions = getCreateReplyMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * Get open reviews from prior versions, with auto-completion detection.
+
+For each open review:
+- If it references a clip not in this version and is a deletion request → auto_completed
+- If it references a clip not in this version but is a review → elevated to top-level, clip_removed=True
+ * @summary Get Active Comments
+ */
+export const getActiveComments = (datasetId: number, versionId: number, signal?: AbortSignal) => {
+    return customAxios<ActiveCommentsResponse>({
+        url: `/api/gateway/dataset/${datasetId}/version/${versionId}/active-comments`,
+        method: 'GET',
+        signal,
+    });
+};
+
+export const getGetActiveCommentsQueryKey = (datasetId?: number, versionId?: number) => {
+    return [`/api/gateway/dataset/${datasetId}/version/${versionId}/active-comments`] as const;
+};
+
+export const getGetActiveCommentsQueryOptions = <
+    TData = Awaited<ReturnType<typeof getActiveComments>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetActiveCommentsQueryKey(datasetId, versionId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveComments>>> = ({ signal }) =>
+        getActiveComments(datasetId, versionId, signal);
+
+    return {
+        queryKey,
+        queryFn,
+        enabled: !!(datasetId && versionId),
+        ...queryOptions,
+    } as UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+};
+
+export type GetActiveCommentsQueryResult = NonNullable<
+    Awaited<ReturnType<typeof getActiveComments>>
+>;
+export type GetActiveCommentsQueryError = HTTPValidationError;
+
+export function useGetActiveComments<
+    TData = Awaited<ReturnType<typeof getActiveComments>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getActiveComments>>,
+                    TError,
+                    Awaited<ReturnType<typeof getActiveComments>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetActiveComments<
+    TData = Awaited<ReturnType<typeof getActiveComments>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getActiveComments>>,
+                    TError,
+                    Awaited<ReturnType<typeof getActiveComments>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetActiveComments<
+    TData = Awaited<ReturnType<typeof getActiveComments>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Active Comments
+ */
+
+export function useGetActiveComments<
+    TData = Awaited<ReturnType<typeof getActiveComments>>,
+    TError = HTTPValidationError,
+>(
+    datasetId: number,
+    versionId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getActiveComments>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetActiveCommentsQueryOptions(datasetId, versionId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * @summary Search Videos
+ */
+export const searchVideos = (params?: SearchVideosParams, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseVideo>({
+        url: `/api/gateway/video`,
+        method: 'GET',
+        params,
+        signal,
+    });
+};
+
+export const getSearchVideosQueryKey = (params?: SearchVideosParams) => {
+    return [`/api/gateway/video`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchVideosQueryOptions = <
     TData = Awaited<ReturnType<typeof searchVideos>>,
     TError = HTTPValidationError,
 >(
-    videoQuery: VideoQuery,
+    params?: SearchVideosParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
     }
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchVideosQueryKey(videoQuery);
+    const queryKey = queryOptions?.queryKey ?? getSearchVideosQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof searchVideos>>> = ({ signal }) =>
-        searchVideos(videoQuery, signal);
+        searchVideos(params, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof searchVideos>>,
@@ -2819,7 +3628,7 @@ export function useSearchVideos<
     TData = Awaited<ReturnType<typeof searchVideos>>,
     TError = HTTPValidationError,
 >(
-    videoQuery: VideoQuery,
+    params: undefined | SearchVideosParams,
     options: {
         query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>> &
             Pick<
@@ -2837,7 +3646,7 @@ export function useSearchVideos<
     TData = Awaited<ReturnType<typeof searchVideos>>,
     TError = HTTPValidationError,
 >(
-    videoQuery: VideoQuery,
+    params?: SearchVideosParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>> &
             Pick<
@@ -2855,7 +3664,7 @@ export function useSearchVideos<
     TData = Awaited<ReturnType<typeof searchVideos>>,
     TError = HTTPValidationError,
 >(
-    videoQuery: VideoQuery,
+    params?: SearchVideosParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
     },
@@ -2869,13 +3678,13 @@ export function useSearchVideos<
     TData = Awaited<ReturnType<typeof searchVideos>>,
     TError = HTTPValidationError,
 >(
-    videoQuery: VideoQuery,
+    params?: SearchVideosParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchVideos>>, TError, TData>>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchVideosQueryOptions(videoQuery, options);
+    const queryOptions = getSearchVideosQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -3073,34 +3882,34 @@ export function useGetVideo<
 /**
  * @summary Search Clips
  */
-export const searchClips = (clipQuery: ClipQuery, signal?: AbortSignal) => {
+export const searchClips = (params?: SearchClipsParams, signal?: AbortSignal) => {
     return customAxios<BaseEntitySearchResponseClip>({
         url: `/api/gateway/clip`,
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        params,
         signal,
     });
 };
 
-export const getSearchClipsQueryKey = (clipQuery?: ClipQuery) => {
-    return [`/api/gateway/clip`, clipQuery] as const;
+export const getSearchClipsQueryKey = (params?: SearchClipsParams) => {
+    return [`/api/gateway/clip`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchClipsQueryOptions = <
     TData = Awaited<ReturnType<typeof searchClips>>,
     TError = HTTPValidationError,
 >(
-    clipQuery: ClipQuery,
+    params?: SearchClipsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
     }
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchClipsQueryKey(clipQuery);
+    const queryKey = queryOptions?.queryKey ?? getSearchClipsQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof searchClips>>> = ({ signal }) =>
-        searchClips(clipQuery, signal);
+        searchClips(params, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof searchClips>>,
@@ -3116,7 +3925,7 @@ export function useSearchClips<
     TData = Awaited<ReturnType<typeof searchClips>>,
     TError = HTTPValidationError,
 >(
-    clipQuery: ClipQuery,
+    params: undefined | SearchClipsParams,
     options: {
         query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>> &
             Pick<
@@ -3134,7 +3943,7 @@ export function useSearchClips<
     TData = Awaited<ReturnType<typeof searchClips>>,
     TError = HTTPValidationError,
 >(
-    clipQuery: ClipQuery,
+    params?: SearchClipsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>> &
             Pick<
@@ -3152,7 +3961,7 @@ export function useSearchClips<
     TData = Awaited<ReturnType<typeof searchClips>>,
     TError = HTTPValidationError,
 >(
-    clipQuery: ClipQuery,
+    params?: SearchClipsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
     },
@@ -3166,13 +3975,13 @@ export function useSearchClips<
     TData = Awaited<ReturnType<typeof searchClips>>,
     TError = HTTPValidationError,
 >(
-    clipQuery: ClipQuery,
+    params?: SearchClipsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchClips>>, TError, TData>>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchClipsQueryOptions(clipQuery, options);
+    const queryOptions = getSearchClipsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;
@@ -3368,26 +4177,234 @@ export function useGetClip<
 }
 
 /**
- * @summary Search Deliveries
+ * Generate a signed URL for a clip's video file (cached for ~55 min).
+ * @summary Get Clip Signed Url
  */
-export const searchDeliveries = (deliveryQuery: DeliveryQuery, signal?: AbortSignal) => {
-    return customAxios<BaseEntitySearchResponseDelivery>({
-        url: `/api/gateway/delivery`,
+export const getClipSignedUrl = (clipId: number, signal?: AbortSignal) => {
+    return customAxios<SignedUrlResponse>({
+        url: `/api/gateway/clip/${clipId}/signed-url`,
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
         signal,
     });
 };
 
-export const getSearchDeliveriesQueryKey = (deliveryQuery?: DeliveryQuery) => {
-    return [`/api/gateway/delivery`, deliveryQuery] as const;
+export const getGetClipSignedUrlQueryKey = (clipId?: number) => {
+    return [`/api/gateway/clip/${clipId}/signed-url`] as const;
+};
+
+export const getGetClipSignedUrlQueryOptions = <
+    TData = Awaited<ReturnType<typeof getClipSignedUrl>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getClipSignedUrl>>, TError, TData>
+        >;
+    }
+) => {
+    const { query: queryOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetClipSignedUrlQueryKey(clipId);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClipSignedUrl>>> = ({ signal }) =>
+        getClipSignedUrl(clipId, signal);
+
+    return { queryKey, queryFn, enabled: !!clipId, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getClipSignedUrl>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type GetClipSignedUrlQueryResult = NonNullable<Awaited<ReturnType<typeof getClipSignedUrl>>>;
+export type GetClipSignedUrlQueryError = HTTPValidationError;
+
+export function useGetClipSignedUrl<
+    TData = Awaited<ReturnType<typeof getClipSignedUrl>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options: {
+        query: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getClipSignedUrl>>, TError, TData>
+        > &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getClipSignedUrl>>,
+                    TError,
+                    Awaited<ReturnType<typeof getClipSignedUrl>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetClipSignedUrl<
+    TData = Awaited<ReturnType<typeof getClipSignedUrl>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getClipSignedUrl>>, TError, TData>
+        > &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getClipSignedUrl>>,
+                    TError,
+                    Awaited<ReturnType<typeof getClipSignedUrl>>
+                >,
+                'initialData'
+            >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useGetClipSignedUrl<
+    TData = Awaited<ReturnType<typeof getClipSignedUrl>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getClipSignedUrl>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+/**
+ * @summary Get Clip Signed Url
+ */
+
+export function useGetClipSignedUrl<
+    TData = Awaited<ReturnType<typeof getClipSignedUrl>>,
+    TError = HTTPValidationError,
+>(
+    clipId: number,
+    options?: {
+        query?: Partial<
+            UseQueryOptions<Awaited<ReturnType<typeof getClipSignedUrl>>, TError, TData>
+        >;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+    const queryOptions = getGetClipSignedUrlQueryOptions(clipId, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData>;
+    };
+
+    query.queryKey = queryOptions.queryKey;
+
+    return query;
+}
+
+/**
+ * Generate signed URLs for multiple clips in one request.
+
+Returns a map of clip_id -> signed_url. Uses an in-memory cache
+so repeated URIs (same video across versions) only hit GCS once.
+ * @summary Batch Signed Urls
+ */
+export const batchSignedUrls = (
+    batchSignedUrlRequest: BatchSignedUrlRequest,
+    signal?: AbortSignal
+) => {
+    return customAxios<BatchSignedUrlResponse>({
+        url: `/api/gateway/clip/batch-signed-urls`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: batchSignedUrlRequest,
+        signal,
+    });
+};
+
+export const getBatchSignedUrlsMutationOptions = <
+    TError = HTTPValidationError,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof batchSignedUrls>>,
+        TError,
+        { data: BatchSignedUrlRequest },
+        TContext
+    >;
+}): UseMutationOptions<
+    Awaited<ReturnType<typeof batchSignedUrls>>,
+    TError,
+    { data: BatchSignedUrlRequest },
+    TContext
+> => {
+    const mutationKey = ['batchSignedUrls'];
+    const { mutation: mutationOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+        Awaited<ReturnType<typeof batchSignedUrls>>,
+        { data: BatchSignedUrlRequest }
+    > = (props) => {
+        const { data } = props ?? {};
+
+        return batchSignedUrls(data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type BatchSignedUrlsMutationResult = NonNullable<
+    Awaited<ReturnType<typeof batchSignedUrls>>
+>;
+export type BatchSignedUrlsMutationBody = BatchSignedUrlRequest;
+export type BatchSignedUrlsMutationError = HTTPValidationError;
+
+/**
+ * @summary Batch Signed Urls
+ */
+export const useBatchSignedUrls = <TError = HTTPValidationError, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof batchSignedUrls>>,
+            TError,
+            { data: BatchSignedUrlRequest },
+            TContext
+        >;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<
+    Awaited<ReturnType<typeof batchSignedUrls>>,
+    TError,
+    { data: BatchSignedUrlRequest },
+    TContext
+> => {
+    const mutationOptions = getBatchSignedUrlsMutationOptions(options);
+
+    return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Search Deliveries
+ */
+export const searchDeliveries = (params?: SearchDeliveriesParams, signal?: AbortSignal) => {
+    return customAxios<BaseEntitySearchResponseDelivery>({
+        url: `/api/gateway/delivery`,
+        method: 'GET',
+        params,
+        signal,
+    });
+};
+
+export const getSearchDeliveriesQueryKey = (params?: SearchDeliveriesParams) => {
+    return [`/api/gateway/delivery`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchDeliveriesQueryOptions = <
     TData = Awaited<ReturnType<typeof searchDeliveries>>,
     TError = HTTPValidationError,
 >(
-    deliveryQuery: DeliveryQuery,
+    params?: SearchDeliveriesParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
@@ -3396,10 +4413,10 @@ export const getSearchDeliveriesQueryOptions = <
 ) => {
     const { query: queryOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getSearchDeliveriesQueryKey(deliveryQuery);
+    const queryKey = queryOptions?.queryKey ?? getSearchDeliveriesQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDeliveries>>> = ({ signal }) =>
-        searchDeliveries(deliveryQuery, signal);
+        searchDeliveries(params, signal);
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof searchDeliveries>>,
@@ -3415,7 +4432,7 @@ export function useSearchDeliveries<
     TData = Awaited<ReturnType<typeof searchDeliveries>>,
     TError = HTTPValidationError,
 >(
-    deliveryQuery: DeliveryQuery,
+    params: undefined | SearchDeliveriesParams,
     options: {
         query: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
@@ -3435,7 +4452,7 @@ export function useSearchDeliveries<
     TData = Awaited<ReturnType<typeof searchDeliveries>>,
     TError = HTTPValidationError,
 >(
-    deliveryQuery: DeliveryQuery,
+    params?: SearchDeliveriesParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
@@ -3455,7 +4472,7 @@ export function useSearchDeliveries<
     TData = Awaited<ReturnType<typeof searchDeliveries>>,
     TError = HTTPValidationError,
 >(
-    deliveryQuery: DeliveryQuery,
+    params?: SearchDeliveriesParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
@@ -3471,7 +4488,7 @@ export function useSearchDeliveries<
     TData = Awaited<ReturnType<typeof searchDeliveries>>,
     TError = HTTPValidationError,
 >(
-    deliveryQuery: DeliveryQuery,
+    params?: SearchDeliveriesParams,
     options?: {
         query?: Partial<
             UseQueryOptions<Awaited<ReturnType<typeof searchDeliveries>>, TError, TData>
@@ -3479,7 +4496,7 @@ export function useSearchDeliveries<
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
-    const queryOptions = getSearchDeliveriesQueryOptions(deliveryQuery, options);
+    const queryOptions = getSearchDeliveriesQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData>;

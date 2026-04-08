@@ -2,7 +2,9 @@
 
 The clip viewer (`ClipViewerPage.tsx`) is the core review experience. It provides a rich, three-panel interface for reviewing individual video clips with time-synced metadata and contextual feedback.
 
-Route: `/delivery/:deliveryId/clip/:clipId`
+Route: `/dataset/:datasetId/version/:versionId/clip/:clipId`
+
+Entry point: Dataset Detail → pencil icon on a version → Version Editor → click a clip row
 
 ## Layout
 
@@ -53,10 +55,12 @@ Route: `/delivery/:deliveryId/clip/:clipId`
 - Start/end time inputs for GTM/researchers to suggest clip boundary changes
 - Shows delta from original boundaries
 - Duration auto-calculated
+- Note: save action is not yet wired to the backend
 
 ### Version Selector (Header)
 - Button group for each dataset version (v1, v2, etc.)
 - Allows flipping between versions to compare the same clip across iterations
+- Navigates to `/dataset/:datasetId/version/:newVersionId/clip/:clipId`
 
 ## Component Structure
 
@@ -74,11 +78,16 @@ ClipViewerPage
 ## Data Flow
 
 1. `useGetClip(clipId)` fetches clip data
-2. `useSearchClipFeedback(deliveryId, clipId)` fetches all feedback
-3. Video `onTimeUpdate` drives `MetadataPanel` progress bar
-4. Feedback form captures timestamp via `videoRef.current.currentTime`
-5. `useCreateClipFeedback` submits, then invalidates feedback query
-6. `useUpdateClipFeedback` marks resolved, then invalidates feedback query
+2. `useGetDataset(datasetId)` fetches dataset name for header
+3. `useSearchClipFeedback(datasetId, versionId, clipId)` fetches all feedback
+4. Video `onTimeUpdate` drives `MetadataPanel` progress bar
+5. Feedback form captures timestamp via `videoRef.current.currentTime`
+6. `useCreateClipFeedback` submits with `dataset_id` + `dataset_version_id`, then invalidates feedback query
+7. `useUpdateClipFeedback` marks resolved with `resolved_in_version_id`, then invalidates feedback query
+
+## Back Navigation
+
+Back button returns to the Version Editor: `/dataset/:datasetId/version/:versionId/edit`
 
 ## See Also
 

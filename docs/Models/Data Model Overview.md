@@ -35,15 +35,15 @@ Each entity defines 5-6 types in its blueprint:
 
 - [[User Model]] - User with role (customer/gtm/researcher) and access level (regular/admin)
 - [[User Roles and Access]] - Role system, authorization dependencies, invitation flow
-- `app/blueprints/dataset.py` - Dataset and DatasetVersion
+- `app/blueprints/dataset.py` - Dataset, DatasetVersion, DatasetVersionVideo
 - `app/blueprints/dataset_assignment.py` - Links users to datasets with a relationship role
 - `app/blueprints/invitation.py` - Admin-created invitations consumed on first login
-- `app/blueprints/video.py` - Video entity
-- `app/blueprints/clip.py` - Clip entity
-- `app/blueprints/delivery.py` - Delivery entity
-- `app/blueprints/delivery_access.py` - Delivery access control
-- `app/blueprints/clip_feedback.py` - Clip-level feedback
-- `app/blueprints/delivery_feedback.py` - Delivery-level feedback
+- `app/blueprints/video.py` - Video entity (with extra_metadata JSONB)
+- `app/blueprints/clip.py` - Clip entity (with extra_metadata JSONB)
+- `app/blueprints/clip_feedback.py` - Clip-level feedback (scoped to dataset + version)
+- `app/blueprints/delivery.py` - Delivery entity (backend only, not in frontend flow)
+- `app/blueprints/delivery_access.py` - Delivery access control (backend only)
+- `app/blueprints/delivery_feedback.py` - Delivery-level feedback (backend only)
 
 ## Pydantic Configuration
 

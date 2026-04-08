@@ -39,6 +39,7 @@ export default function VersionEditorPage() {
     const [excludedIds, setExcludedIds] = useState<Set<number>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [metadataFilter, setMetadataFilter] = useState('');
+    const [commitMessage, setCommitMessage] = useState('');
 
     const { data: dataset } = useGetDataset(dsId);
     const { data: clipsResponse } = useGetVersionClips(dsId, verIdNum);
@@ -105,10 +106,15 @@ export default function VersionEditorPage() {
 
     const handleFork = async () => {
         const clipIds = includedClips.map((c) => c.id);
-        await forkVersion.mutateAsync({ datasetId: dsId, versionId: verIdNum, data: { clip_ids: clipIds } });
+        const result = await forkVersion.mutateAsync({
+            datasetId: dsId,
+            versionId: verIdNum,
+            data: { clip_ids: clipIds, commit_message: commitMessage || undefined },
+        });
         queryClient.invalidateQueries({ queryKey: getGetVersionClipsQueryKey(dsId, verIdNum) });
         queryClient.invalidateQueries({ queryKey: getSearchDatasetVersionsQueryKey(dsId) });
-        navigate(`/dataset/${dsId}`);
+        // Navigate to active comments flow for the new version
+        navigate(`/dataset/${dsId}/version/${result.version.id}/review-comments`);
     };
 
     const handleExportJson = () => {
@@ -157,6 +163,16 @@ export default function VersionEditorPage() {
                         <Download className="h-4 w-4 mr-2" />
                         Export JSONL
                     </Button>
+                </div>
+
+                {/* Commit message + Fork */}
+                <div className="flex gap-3 mb-4 items-center">
+                    <Input
+                        placeholder="Commit message — describe what changed in this version..."
+                        value={commitMessage}
+                        onChange={(e) => setCommitMessage(e.target.value)}
+                        className="flex-1"
+                    />
                     <Button onClick={handleFork} disabled={forkVersion.isPending || includedClips.length === 0}>
                         <GitFork className="h-4 w-4 mr-2" />
                         {forkVersion.isPending ? 'Creating...' : `Fork as v${(currentVersion?.version_number ?? 0) + 1}`}

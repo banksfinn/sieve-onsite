@@ -7,6 +7,7 @@ from app.blueprints.dataset import DatasetModel, DatasetVersionModel, DatasetVer
 from app.blueprints.delivery import DeliveryModel
 from app.blueprints.delivery_access import DeliveryAccessModel
 from app.blueprints.dataset_assignment import DatasetAssignmentModel
+from app.blueprints.dataset_review import DatasetReviewModel, DatasetReviewReplyModel
 from app.blueprints.delivery_feedback import DeliveryFeedbackModel
 from app.blueprints.invitation import InvitationModel
 from app.blueprints.video import VideoModel
@@ -22,5 +23,7 @@ all_models = user_management_all_models + llm_manager_all_models + [
     ClipFeedbackModel,
     DeliveryFeedbackModel,
     DatasetAssignmentModel,
+    DatasetReviewModel,
+    DatasetReviewReplyModel,
     InvitationModel,
 ]

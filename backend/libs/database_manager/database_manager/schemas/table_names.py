@@ -15,6 +15,10 @@ delivery_access_table_name = "delivery_access"
 clip_feedback_table_name = "clip_feedback"
 delivery_feedback_table_name = "delivery_feedback"
 
+# Reviews
+dataset_review_table_name = "dataset_reviews"
+dataset_review_reply_table_name = "dataset_review_replies"
+
 # Assignments
 dataset_assignment_table_name = "dataset_assignments"
 

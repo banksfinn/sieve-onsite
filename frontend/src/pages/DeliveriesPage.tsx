@@ -22,16 +22,17 @@ import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
     requested: 'bg-amber-100 text-amber-700',
-    initialized: 'bg-blue-100 text-blue-700',
-    active: 'bg-green-100 text-green-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+    review_requested: 'bg-purple-100 text-purple-700',
+    changes_requested: 'bg-orange-100 text-orange-700',
+    approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
     draft: 'bg-gray-100 text-gray-700',
     sent_to_customer: 'bg-blue-100 text-blue-700',
     in_review: 'bg-yellow-100 text-yellow-700',
     feedback_received: 'bg-purple-100 text-purple-700',
     iterating: 'bg-orange-100 text-orange-700',
     ready_for_approval: 'bg-cyan-100 text-cyan-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -45,11 +46,14 @@ function StatusBadge({ status }: { status: string }) {
 // --- Customer view: shows their dataset requests ---
 
 function CustomerRequestCard({ dataset, onClick }: { dataset: Dataset; onClick: () => void }) {
-    const status = dataset.status ?? 'requested';
+    const requestStatus = dataset.request_status ?? 'requested';
     const statusLabel: Record<string, string> = {
         requested: 'Submitted — waiting for team to review',
-        initialized: 'In progress — team is preparing samples',
-        active: 'Samples ready for review',
+        in_progress: 'In progress — team is preparing samples',
+        review_requested: 'Samples ready for your review',
+        changes_requested: 'Changes requested — team is addressing feedback',
+        approved: 'Approved',
+        rejected: 'Rejected',
     };
 
     return (
@@ -60,10 +64,10 @@ function CustomerRequestCard({ dataset, onClick }: { dataset: Dataset; onClick: 
                         <div className="flex items-center gap-2 mb-1">
                             <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="font-medium truncate">{dataset.name}</span>
-                            <StatusBadge status={status} />
+                            <StatusBadge status={requestStatus} />
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                            {statusLabel[status] ?? status}
+                            {statusLabel[requestStatus] ?? requestStatus}
                         </p>
                         {dataset.description && (
                             <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
@@ -74,7 +78,7 @@ function CustomerRequestCard({ dataset, onClick }: { dataset: Dataset; onClick: 
                             Submitted {new Date(dataset.created_at).toLocaleDateString()}
                         </p>
                     </div>
-                    {status === 'active' ? (
+                    {requestStatus === 'review_requested' ? (
                         <Badge className="bg-green-600 text-white text-xs flex-shrink-0">
                             Review
                         </Badge>

@@ -8,18 +8,43 @@ All domain routes require authentication via `UserDependency`. Routes that creat
 |--------|------|-------------|
 | `GET` | `/dataset` | Search datasets (filter by name) |
 | `GET` | `/dataset/{id}` | Get dataset by ID |
-| `POST` | `/dataset` | Create dataset |
+| `POST` | `/dataset` | Create dataset (optionally with bucket_path for auto-ingest) |
 | `PATCH` | `/dataset/{id}` | Update dataset |
 | `DELETE` | `/dataset/{id}` | Delete dataset |
+| `POST` | `/dataset/{id}/ingest` | Ingest from GCS bucket (transitions requested → active) |
+| `POST` | `/dataset/{id}/summarize-feedback` | Summarize all clip feedback for a dataset via LLM |
+
+### Dataset Versions (`/api/gateway/dataset/{id}/version`)
+
+| Method | Path | Description |
+|--------|------|-------------|
 | `GET` | `/dataset/{id}/version` | List versions for a dataset |
 | `GET` | `/dataset/{id}/version/{vid}` | Get specific version |
-| `POST` | `/dataset/{id}/version` | Create new version (auto-sets `created_by`) |
+| `GET` | `/dataset/{id}/version/{vid}/videos` | List videos in a version |
+| `GET` | `/dataset/{id}/version/{vid}/clips` | List clips in a version |
+| `POST` | `/dataset/{id}/version/{vid}/fork` | Fork a new version from selected clip subset |
+
+### Clip Feedback (`/api/gateway/dataset/{id}/version/{vid}/clip/{cid}/feedback`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/dataset/{id}/version/{vid}/clip/{cid}/feedback` | List feedback for a clip in a version |
+| `POST` | `/dataset/{id}/version/{vid}/clip/{cid}/feedback` | Submit clip feedback (timestamped, field-specific) |
+| `PATCH` | `/dataset/{id}/version/{vid}/clip/{cid}/feedback/{fid}` | Update feedback (mark resolved, change rating) |
+
+## Dataset Assignment Routes (`/api/gateway/dataset-assignment`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/dataset-assignment` | Search assignments (filter by dataset_id, user_id) |
+| `POST` | `/dataset-assignment` | Assign user to dataset with role |
+| `DELETE` | `/dataset-assignment/{id}` | Remove assignment |
 
 ## Video Routes (`/api/gateway/video`)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/video` | Search videos (filter by delivery_id, source, language) |
+| `GET` | `/video` | Search videos (filter by delivery_id) |
 | `GET` | `/video/{id}` | Get video by ID |
 | `POST` | `/video` | Create video |
 
@@ -33,37 +58,15 @@ All domain routes require authentication via `UserDependency`. Routes that creat
 
 ## Delivery Routes (`/api/gateway/delivery`)
 
+> Note: Delivery exists in the backend but is not used in the current frontend flow. The review/feedback cycle happens on datasets directly. Delivery may be used in the future for shipping approved datasets to customers.
+
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/delivery` | Search deliveries (filter by status, dataset_version_id, created_by) |
+| `GET` | `/delivery` | Search deliveries |
 | `GET` | `/delivery/{id}` | Get delivery by ID |
-| `POST` | `/delivery` | Create delivery (auto-sets `created_by`) |
-| `PATCH` | `/delivery/{id}` | Update delivery (status transitions, description) |
+| `POST` | `/delivery` | Create delivery |
+| `PATCH` | `/delivery/{id}` | Update delivery |
 | `DELETE` | `/delivery/{id}` | Delete delivery |
-
-### Delivery Access (`/api/gateway/delivery/{id}/access`)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/delivery/{id}/access` | List access entries for a delivery |
-| `POST` | `/delivery/{id}/access` | Grant access to a user |
-| `PATCH` | `/delivery/{id}/access/{aid}` | Update access role |
-| `DELETE` | `/delivery/{id}/access/{aid}` | Revoke access |
-
-### Delivery Feedback (`/api/gateway/delivery/{id}/feedback`)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/delivery/{id}/feedback` | List delivery-level feedback |
-| `POST` | `/delivery/{id}/feedback` | Submit verdict (approved/needs_changes/rejected) |
-
-### Clip Feedback (`/api/gateway/delivery/{id}/clip/{cid}/feedback`)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/delivery/{id}/clip/{cid}/feedback` | List feedback for a clip in a delivery |
-| `POST` | `/delivery/{id}/clip/{cid}/feedback` | Submit clip feedback (timestamped, field-specific) |
-| `PATCH` | `/delivery/{id}/clip/{cid}/feedback/{fid}` | Update feedback (mark resolved) |
 
 ## See Also
 

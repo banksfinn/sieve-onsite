@@ -13,7 +13,7 @@ from database_manager.schemas.table_names import (
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.schemas.enums import DatasetStatus
+from app.schemas.enums import DatasetLifecycle, DatasetRequestStatus
 
 
 class DatasetModel(BaseEntityModel):
@@ -21,14 +21,16 @@ class DatasetModel(BaseEntityModel):
 
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    status: Mapped[str] = mapped_column(String, nullable=False, default=DatasetStatus.requested.value)
+    lifecycle: Mapped[str] = mapped_column(String, nullable=False, default=DatasetLifecycle.pending.value)
+    request_status: Mapped[str] = mapped_column(String, nullable=False, default=DatasetRequestStatus.requested.value)
     bucket_path: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class Dataset(BaseEntity):
     name: str
     description: str | None = None
-    status: str = DatasetStatus.requested.value
+    lifecycle: str = DatasetLifecycle.pending.value
+    request_status: str = DatasetRequestStatus.requested.value
     bucket_path: str | None = None
 
 
@@ -41,13 +43,16 @@ class DatasetCreateRequest(BaseEntityCreateRequest):
 class DatasetUpdateRequest(BaseEntityUpdateRequest):
     name: str | None = None
     description: str | None = None
-    status: str | None = None
+    lifecycle: str | None = None
+    request_status: str | None = None
     bucket_path: str | None = None
 
 
 class DatasetQuery(BaseEntityQuery):
     name: str | None = None
-    status: str | None = None
+    lifecycle: str | None = None
+    request_status: str | None = None
+    user_id: int | None = None
 
 
 class DatasetVersionModel(BaseEntityModel):
@@ -57,6 +62,7 @@ class DatasetVersionModel(BaseEntityModel):
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
     parent_version_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("dataset_versions.id"), nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    commit_message: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class DatasetVersion(BaseEntity):
@@ -64,6 +70,7 @@ class DatasetVersion(BaseEntity):
     version_number: int
     parent_version_id: int | None = None
     created_by: int
+    commit_message: str | None = None
 
 
 class DatasetVersionCreateRequest(BaseEntityCreateRequest):
@@ -71,10 +78,11 @@ class DatasetVersionCreateRequest(BaseEntityCreateRequest):
     version_number: int
     parent_version_id: int | None = None
     created_by: int
+    commit_message: str | None = None
 
 
 class DatasetVersionUpdateRequest(BaseEntityUpdateRequest):
-    pass
+    commit_message: str | None = None
 
 
 class DatasetVersionQuery(BaseEntityQuery):

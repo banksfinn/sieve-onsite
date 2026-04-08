@@ -4,6 +4,7 @@ from database_manager.blueprints.base_entity import BaseEntityDeleteRequest, Bas
 from user_management.api.dependencies import UserDependency
 
 from app.blueprints.delivery import Delivery, DeliveryCreateRequest, DeliveryQuery, DeliveryUpdateRequest
+from app.schemas.enums import DeliveryStatus
 from app.blueprints.delivery_access import DeliveryAccess, DeliveryAccessCreateRequest, DeliveryAccessQuery, DeliveryAccessUpdateRequest
 from app.blueprints.delivery_feedback import DeliveryFeedback, DeliveryFeedbackCreateRequest, DeliveryFeedbackQuery
 from app.stores.delivery import delivery_store
@@ -17,7 +18,13 @@ router = APIRouter()
 
 
 @router.get("", response_model=BaseEntitySearchResponse[Delivery])
-async def search_deliveries(user: UserDependency, query: DeliveryQuery = DeliveryQuery()):
+async def search_deliveries(
+    user: UserDependency,
+    status: DeliveryStatus | None = None,
+    dataset_version_id: int | None = None,
+    created_by: int | None = None,
+):
+    query = DeliveryQuery(status=status, dataset_version_id=dataset_version_id, created_by=created_by)
     return await delivery_store.search_entities(query)
 
 

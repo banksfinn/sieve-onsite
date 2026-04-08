@@ -1,20 +1,59 @@
 # Dataset Lifecycle
 
-The dataset lifecycle tracks ingestion progress from initial request through active iteration. This is separate from the [[Domain Models|Delivery status machine]], which tracks the customer review workflow.
+Datasets have two independent state dimensions: **lifecycle** (does it have data?) and **request status** (where is it in the customer iteration cycle?).
 
-## States
+## Lifecycle States
+
+Tracks whether the dataset has data available.
 
 ```
-requested -> initialized -> active
+pending -> active -> archived
 ```
 
-| Status | Meaning | Who triggers |
-|--------|---------|-------------|
-| `requested` | Dataset created, no data yet | Customer or GTM (via dataset creation) |
-| `initialized` | Bucket path + video metadata provided, version 0 exists | Researcher (via initialize endpoint) or GTM (at creation time) |
-| `active` | At least one clip version (v1+) exists | Researcher (auto-advanced on first clip upload) |
+| Lifecycle | Meaning | Who triggers |
+|-----------|---------|-------------|
+| `pending` | Dataset created, no data ingested yet | System default on creation |
+| `active` | Data exists (videos/clips ingested) | System (auto-set on successful ingestion) |
+| `archived` | Dataset retired, read-only | GTM or Admin (manual) |
 
-No backward transitions. Once initialized, a dataset cannot return to `requested`.
+No backward transitions from `active`. `archived` is terminal.
+
+## Request Status States
+
+Tracks the customer iteration/delivery cycle.
+
+```
+requested -> in_progress -> review_requested -> approved
+                  ^                |
+                  |                v
+                  +---- changes_requested
+
+(any non-terminal) -----> rejected
+```
+
+| Request Status | Meaning | Who triggers |
+|----------------|---------|-------------|
+| `requested` | Customer/GTM created the request, awaiting work | Customer or GTM (on creation) |
+| `in_progress` | Researcher is actively working on the dataset | Researcher (on ingest or after addressing feedback) |
+| `review_requested` | A version is ready for customer/GTM review | Researcher (explicit signal) |
+| `changes_requested` | Reviewer wants modifications | GTM or Customer (after reviewing) |
+| `approved` | Dataset is satisfactory, work complete | GTM or Customer |
+| `rejected` | Dataset request won't be fulfilled | GTM or Customer |
+
+Terminal states: `approved` and `rejected`.
+
+## How the Two Dimensions Interact
+
+| Scenario | Lifecycle | Request Status |
+|----------|-----------|---------------|
+| Customer submits a new request | `pending` | `requested` |
+| GTM creates dataset with bucket path (fast path) | `active` | `in_progress` |
+| Researcher ingests data into a pending dataset | `active` | `in_progress` |
+| Researcher signals version is ready for review | `active` | `review_requested` |
+| Customer requests changes after reviewing | `active` | `changes_requested` |
+| Researcher addresses feedback, re-submits | `active` | `review_requested` |
+| Customer approves the dataset | `active` | `approved` |
+| Approved dataset is retired | `archived` | `approved` |
 
 ## Version 0 vs Version 1+
 
@@ -46,16 +85,19 @@ The system stores `gs://` URIs and generates signed URLs on demand for playback.
 
 ## GTM Fast Path
 
-When GTM creates a dataset on behalf of a customer, they can provide `bucket_path` and `videos` at creation time. This skips the `requested` state and goes directly to `initialized`.
+When GTM creates a dataset on behalf of a customer, they can provide `bucket_path` and `videos` at creation time. This skips the `pending` lifecycle state and goes directly to `active` with request status `in_progress`.
 
-## Relationship to DeliveryStatus
+## Review and Feedback
+
+The review/feedback cycle happens directly on datasets and versions — there is no separate delivery workflow. ClipFeedback is scoped to `dataset_id` + `dataset_version_id`, and tracks resolution across versions via `resolved_in_version_id`.
 
 | Concern | Tracked by |
 |---------|-----------|
-| Ingestion progress (do we have data?) | `DatasetStatus` on Dataset |
-| Customer review workflow | `DeliveryStatus` on Delivery |
-
-A Delivery references a specific DatasetVersion. The delivery workflow (draft -> sent -> review -> feedback -> approved) operates independently of the dataset lifecycle.
+| Data availability | `DatasetLifecycle` on Dataset |
+| Iteration/delivery cycle | `DatasetRequestStatus` on Dataset |
+| Clip-level review feedback | `ClipFeedback` scoped to dataset version |
+| Threaded review conversations | `DatasetReview` + `DatasetReviewReply` |
+| Issue resolution across versions | `ClipFeedback.resolved_in_version_id` + `is_resolved` |
 
 ## See Also
 

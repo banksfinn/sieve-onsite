@@ -18,6 +18,7 @@ from app.blueprints.dataset import (
     DatasetVersionVideoModel,
     DatasetVersionVideoQuery,
 )
+from app.blueprints.dataset_assignment import DatasetAssignmentModel
 
 
 class DatasetStore(
@@ -40,8 +41,15 @@ class DatasetStore(
     def _apply_entity_specific_search(self, query: DatasetQuery, stmt: Select[tuple[DatasetModel]]) -> Select[tuple[DatasetModel]]:
         if query.name:
             stmt = stmt.filter(DatasetModel.name.ilike(f"%{query.name}%"))
-        if query.status:
-            stmt = stmt.filter(DatasetModel.status == query.status)
+        if query.lifecycle:
+            stmt = stmt.filter(DatasetModel.lifecycle == query.lifecycle)
+        if query.request_status:
+            stmt = stmt.filter(DatasetModel.request_status == query.request_status)
+        if query.user_id:
+            stmt = stmt.join(
+                DatasetAssignmentModel,
+                DatasetAssignmentModel.dataset_id == DatasetModel.id,
+            ).filter(DatasetAssignmentModel.user_id == query.user_id)
         return stmt
 
 

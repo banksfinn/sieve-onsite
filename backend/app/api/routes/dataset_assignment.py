@@ -15,7 +15,11 @@ router = APIRouter()
 
 
 @router.get("", response_model=BaseEntitySearchResponse[DatasetAssignment])
-async def search_assignments(user: UserDependency, query: DatasetAssignmentQuery = DatasetAssignmentQuery()):
+async def search_assignments(user: UserDependency,
+        dataset_id: int | None = None,
+    user_id: int | None = None,
+    role: str | None = None):
+    query = DatasetAssignmentQuery(dataset_id=dataset_id, user_id=user_id, role=role)
     return await dataset_assignment_store.search_entities(query)
 
 

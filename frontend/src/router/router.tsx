@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import ActiveCommentsPage from '@/pages/ActiveCommentsPage';
 import AdminPage from '@/pages/AdminPage';
 import ClipViewerPage from '@/pages/ClipViewerPage';
 import DatasetDetailPage from '@/pages/DatasetDetailPage';
@@ -9,6 +10,7 @@ import ProfilePage from '@/pages/ProfilePage';
 import RegisterPage from '@/pages/RegisterPage';
 import SeedDatasetPage from '@/pages/SeedDatasetPage';
 import VersionEditorPage from '@/pages/VersionEditorPage';
+import VersionReviewPage from '@/pages/VersionReviewPage';
 
 export default function Router() {
     return (
@@ -18,6 +20,8 @@ export default function Router() {
             <Route path="/datasets" element={<DatasetsPage />} />
             <Route path="/dataset/:datasetId" element={<DatasetDetailPage />} />
             <Route path="/dataset/:datasetId/version/:versionId/edit" element={<VersionEditorPage />} />
+            <Route path="/dataset/:datasetId/version/:versionId/review" element={<VersionReviewPage />} />
+            <Route path="/dataset/:datasetId/version/:versionId/review-comments" element={<ActiveCommentsPage />} />
             <Route path="/dataset/:datasetId/version/:versionId/clip/:clipId" element={<ClipViewerPage />} />
             <Route path="/tools/seed-dataset" element={<SeedDatasetPage />} />
             <Route path="/admin" element={<AdminPage />} />

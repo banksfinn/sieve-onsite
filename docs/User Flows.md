@@ -7,63 +7,75 @@ See [[User Roles and Access]] for the underlying role/access level model.
 ## Customer Flows
 
 ### Submit a Dataset Request
-1. Customer navigates to a "New Request" form
-2. Fills in dataset requirements (name, description, focus areas)
-3. Submits — creates a new Dataset in `draft` state
+1. Customer clicks "Request New Dataset" from the home dashboard
+2. A dialog opens — fills in dataset name and description (requirements, focus areas)
+3. Submits — creates a new Dataset in `requested` status
 4. Customer is automatically assigned to the dataset
 
 ### View Requests and Status
-1. Customer sees a list of datasets they're assigned to
-2. Each dataset shows current status, active version, and team (GTM contacts visible, researchers hidden)
+1. Customer sees a list of datasets they're assigned to on the home dashboard
+2. Each dataset shows current status (`requested`, `initialized`, `active`)
 3. Customer can click into a dataset to see version history and details
 
-### Download Deliverables
-1. When a dataset reaches a final/approved state, download links become available
-2. Customer downloads clips or full deliverables from the dataset detail page
+### Review Clips
+1. When a dataset reaches `active` status, customer can enter the version editor
+2. From Dataset Detail, click the pencil icon on a version to see the clip list
+3. Click any clip row to open the Clip Viewer with video playback, metadata, and feedback form
+4. Leave per-clip feedback (good/bad/unsure, comments, timestamp pins, metadata field links)
 
 ### Visibility Rules
 - Customers can see **GTM leads** assigned to their datasets (their point of contact)
 - Customers **cannot** see researchers assigned to datasets
 - Customers only see datasets they are assigned to
 
+### Review a Dataset Version
+1. From dataset detail, customer clicks the **Review** button (speech bubble icon) on a v1+ version
+2. Lands on the **Version Review Page** showing all clips in a table with review status indicators
+3. Can leave **dataset-level reviews** via the top form (type: Review or Request for Deletion)
+4. Can expand any clip row to leave **clip-scoped reviews** with optional timestamp
+5. All reviews are tagged with the current dataset version and visible to all roles
+6. Reviews persist across versions until explicitly closed or auto-completed
+7. See [[Dataset Review Flow]] for full spec
+
 ## GTM Flows
 
+### Review a Dataset Version
+Same as customer review flow above. GTM can also:
+1. View the **Active Comments** page after a researcher creates a new version
+2. See auto-completed deletion requests and orphaned comments
+
 ### View Open / Unassigned Requests
-1. GTM sees a dashboard of all datasets, filterable by assignment status
-2. Unassigned requests are highlighted or have a dedicated tab
-3. GTM can see which datasets have no GTM lead assigned
+1. GTM sees a dashboard of all datasets, with new requests highlighted
+2. Unassigned datasets (no GTM lead) are surfaced in stats
+3. GTM can click through to the datasets list for full view
 
 ### Assign Self as GTM Lead
-1. From a dataset detail page, GTM clicks "Assign me as GTM lead"
+1. From a dataset detail page, GTM clicks "Assign Myself"
 2. Creates a DatasetAssignment with `role = "gtm_lead"`
 3. Multiple GTM members can be assigned to the same dataset
 
 ### Create Dataset Request for a Customer
-1. GTM navigates to "New Request" form
-2. Selects an **existing customer** from the system (customer must already have an account)
-3. Fills in dataset requirements on behalf of the customer
-4. Optionally provides GCS bucket path + video metadata to auto-initialize (skips `requested` state)
-5. Submits — creates the Dataset and assigns both the customer and the GTM to it
+1. GTM navigates to Datasets page and clicks "New Dataset"
+2. Fills in dataset name, description, and optionally a GCS bucket path
+3. If bucket path is provided, the dataset auto-initializes (skips `requested` state, ingests videos and clips)
+4. GTM assigns the customer and themselves to the dataset
 
 ### Assign Researchers
 1. From a dataset detail page, GTM can assign one or more researchers
 2. Creates DatasetAssignment entries with `role = "researcher"`
 3. Assigned researchers see the dataset in their inbox
 
-### View Request Status
-1. GTM sees all datasets they're assigned to, plus all unassigned ones
-2. Can view version history, current feedback, delivery status, and full team (GTM + researchers)
-
-### Advance Dataset Status
-1. GTM can transition a dataset between statuses (e.g., draft -> in_review, feedback_received -> iterating)
-2. See [[Dataset Lifecycle]] for the full state machine
+### Review Clips and Leave Feedback
+1. From Dataset Detail, GTM enters the version editor via pencil icon
+2. Click any clip to open the Clip Viewer
+3. Leave feedback on clips, pin timestamps, link to metadata fields
 
 ## Researcher Flows
 
 ### Inbox — Active Items
-1. Researcher sees a list of datasets assigned to them
-2. Sorted by most recent activity or urgency
-3. Each item shows current version, pending feedback count, and status
+1. Researcher sees a list of datasets assigned to them on the home dashboard
+2. Sorted by most recent activity
+3. Datasets needing work (`initialized` status) are highlighted
 
 ### Self-Assign to a Dataset
 1. Researcher can browse available datasets and assign themselves
@@ -71,31 +83,38 @@ See [[User Roles and Access]] for the underlying role/access level model.
 3. Dataset appears in their inbox after assignment
 
 ### Initialize a Dataset
-1. From a dataset in `requested` status, researcher clicks "Initialize"
+1. From a dataset in `requested` status, click "Ingest from Bucket"
 2. Provides GCS bucket path (e.g., `gs://product-onsite/customer-a`)
-3. Uploads video metadata JSON listing the source videos
-4. System creates version 0 with video references (no clips yet)
-5. Dataset status advances to `initialized`
-6. See [[Dataset Lifecycle]] for version 0 vs version 1+
+3. System fetches metadata from GCS, creates version 1 with clips, dataset becomes `active`
+4. See [[Dataset Lifecycle]] for version details
+
+### Review and Iterate on Clips
+1. From Dataset Detail, click pencil on a version to enter the version editor
+2. Version editor shows all clips with metadata, search, and filtering
+3. Click a clip row to open the Clip Viewer (video + metadata + feedback)
+4. Review existing feedback, mark issues as resolved
+5. Use include/exclude checkboxes to select clips for the next version
+6. Click "Fork" to create a new version with the selected subset
 
 ### Create a New Version
-1. From a dataset detail page, researcher clicks "Create New Version"
-2. New DatasetVersion is created with an incremented version number, linked to the parent version
-3. The new version becomes the **active version** of the dataset
+1. From the version editor, researcher selects which clips to include
+2. Enters a **commit message** describing what changed
+3. Clicks "Fork as vN" — creates a new DatasetVersion with incremented version number
+4. New version is linked to parent via `parent_version_id`
+5. After creation, researcher is redirected to the **Active Comments** page
 
-### View Feedback on Current Version
-1. From a dataset detail page, researcher sees all feedback items on the active version
-2. Feedback is organized by clip or by deliverable (depending on scope)
-3. Researcher can filter/sort feedback
-
-### Submit Own Feedback on a Version
-1. Researcher opens a dataset version
-2. Adds feedback at the version level (overall notes, quality assessment)
-3. Feedback is visible to GTM and other researchers on the dataset
-
-### Advance Dataset Status
-1. Researcher can transition a dataset between statuses (same permissions as GTM)
-2. Typical researcher transitions: iterating -> ready_for_approval
+### Address Review Comments (Active Comments Flow)
+1. After creating a new version, researcher lands on `/dataset/:id/version/:vid/review-comments`
+2. Sees all **open reviews** from prior versions, organized as:
+   - Top-level comments (dataset-wide) first
+   - Then clip-by-clip grouped sections
+3. **Request for Deletion** reviews where the referenced clip was removed are **auto-completed** (green badge)
+4. Reviews referencing removed clips that aren't deletion requests are **elevated to top-level** with a "Clip Removed" indicator
+5. For each open review, researcher can:
+   - **Close** it (checkmark) — marks as resolved in this version
+   - **Reply** to continue the discussion
+6. Can toggle between "Comments" view (flat list) and "Clip by Clip" view
+7. See [[Dataset Review Flow]] for full spec
 
 ## Admin Flows
 
@@ -129,32 +148,31 @@ See [[User Roles and Access]] for the underlying role/access level model.
 4. JWT cookie is set, session begins
 
 ### Dataset Lifecycle (Handoff Flow) {#dataset-lifecycle}
-1. **Customer** submits a dataset request, or **GTM** creates one on behalf of a customer (customer must exist first). GTM can optionally provide bucket path + video metadata to auto-initialize.
+1. **Customer** requests a dataset via home page dialog, or **GTM** creates one (optionally with bucket path to auto-initialize)
 2. **GTM** assigns themselves as lead and assigns one or more researchers
-3. **Researcher** initializes the dataset (bucket path + video metadata → version 0 with source videos)
-4. **Researcher** uploads clip metadata → version 1+ with clips, dataset becomes `active`
-5. **GTM and/or Researcher** review versions, provide feedback
-6. **Researcher** iterates based on feedback, creates new versions
-7. **GTM or Researcher** creates a Delivery from a version and advances it through the delivery workflow
-8. **Customer** reviews the delivery, provides feedback or approves
-9. Loop back to step 6 if changes needed
+3. **Researcher** initializes the dataset if needed (bucket path → ingest from GCS → version 1 with clips)
+4. **GTM and/or Researcher** review clips in the version editor and clip viewer, leave feedback
+5. **Researcher** iterates based on feedback — forks new versions with clip adjustments, marks feedback resolved
+6. Loop continues until dataset is satisfactory
 
-### Dataset Status Transitions (Ingestion Lifecycle)
-`DatasetStatus` tracks whether the dataset has data:
+### Dataset Status Transitions
 
-```
-requested -> initialized -> active
-```
+Datasets have two state dimensions:
 
-See [[Dataset Lifecycle]] for full details on each state and version 0 vs version 1+.
+**Lifecycle** (data availability): `pending` -> `active` -> `archived`
 
-### Delivery Status Transitions (Review Workflow)
-`DeliveryStatus` tracks the customer review process on a specific version:
+**Request Status** (iteration cycle): `requested` -> `in_progress` -> `review_requested` -> `approved` (with `changes_requested` and `rejected` branches)
 
-```
-draft -> sent_to_customer -> in_review -> feedback_received -> iterating -> ready_for_approval -> approved
-                                                                                                -> rejected
-```
+See [[Dataset Lifecycle]] for full details on each state and version concepts.
+
+### Review Flow
+The review cycle happens within the dataset, not via a separate delivery entity:
+
+1. Enter Dataset Detail → click pencil on a version → Version Editor (clip table)
+2. Click a clip → Clip Viewer (video player + metadata + feedback form)
+3. Leave feedback (rating, comments, timestamps, metadata field links)
+4. Researcher creates new version addressing feedback, marks issues resolved
+5. Feedback tracks `resolved_in_version_id` for cross-version resolution
 
 ### Active Version
 Each dataset has one **active version** — the most recently created DatasetVersion. Only researchers can create new versions. Previous versions are retained for history but the UI focuses on the active version for feedback and review.

@@ -1,18 +1,19 @@
 # Domain Models
 
-The core domain is built around a **delivery-centric workflow**: datasets are versioned, deliveries scope feedback to a specific customer context, and feedback is timestamped and field-specific.
+The core domain is built around a **dataset-centric workflow**: datasets are versioned, feedback is scoped to a dataset version, and the review cycle happens directly on clips within versions.
 
 ## Entity Relationship Diagram
 
 ```
-Dataset (status: requested -> initialized -> active)
-  └── DatasetVersion (versioned, with lineage)
+Dataset (lifecycle: pending/active/archived, request_status: requested/in_progress/review_requested/changes_requested/approved/rejected)
+  ├── DatasetAssignment[] (user-to-dataset with role)
+  ├── DatasetReview[] (threaded, versioned, optionally clip-scoped)
+  │     └── DatasetReviewReply[] (conversation thread)
+  └── DatasetVersion (versioned, with lineage + commit_message)
         ├── DatasetVersionVideo[] (version 0: source video tracking)
         ├── Clip[] (version 1+: flattened metadata for filtering)
-        │     └── ClipFeedback[] (scoped to delivery, timestamped, field-specific)
-        └── Delivery[] (workflow state machine)
-              ├── DeliveryAccess[] (role-based per user)
-              └── DeliveryFeedback[] (delivery-level verdicts)
+        │     └── ClipFeedback[] (legacy — scoped to dataset + version, timestamped, field-specific)
+        └── (Delivery[] — exists in backend for future "ship to customer" use, not in frontend flow)
 
 Video (source videos, deduplicated by delivery_id)
   ├── Clip[]
@@ -21,27 +22,21 @@ Video (source videos, deduplicated by delivery_id)
 
 ## Key Design Decisions
 
-### Feedback is scoped to Delivery, not Clip globally
+### Feedback is scoped to Dataset + Version
 
-The same clip can appear in multiple deliveries and be judged differently per customer. `ClipFeedback.delivery_id` ensures feedback is contextual.
+ClipFeedback has both `dataset_id` and `dataset_version_id`, allowing feedback to be queried across all versions of a dataset or filtered to a specific version. The iteration cycle (leave feedback → create new version → mark feedback resolved) lives entirely within the dataset.
 
 ### DatasetVersion is separate from Dataset
 
-Enables lineage tracking (`parent_version_id`), version diffing, and reuse across deliveries. A delivery references a specific version, not the dataset directly.
+Enables lineage tracking (`parent_version_id`), version diffing, and forking subsets of clips into new versions. Researchers review clips within a version, leave feedback, then fork a new version with adjustments.
 
-### Clip metadata is flattened, not a separate table
+### Clip metadata uses JSONB extra_metadata
 
-Fields like `avg_face_size`, `max_num_faces`, `is_full_body`, `has_overlay` are columns on `Clip`, not a key-value table. This is intentional: the primary use case is heavy filtering, and flattened columns give us query performance and type safety.
+Clip-specific metadata (face detection scores, overlay flags, etc.) is stored in a `extra_metadata` JSONB column on Clip, not as separate columns. This allows flexible metadata schemas across different dataset types while still supporting filtering.
 
-### Dataset has its own lifecycle
+### Dataset has two state dimensions
 
-`DatasetStatus` tracks ingestion progress: `requested` -> `initialized` -> `active`. See [[Dataset Lifecycle]] for details on version 0 (source videos) vs version 1+ (clips).
-
-### Delivery status is a state machine
-
-`DeliveryStatus` tracks the customer review workflow: `draft` -> `sent_to_customer` -> `in_review` -> `feedback_received` -> `iterating` -> `ready_for_approval` -> `approved`/`rejected`.
-
-State lives at the **delivery level**, not per-clip. Individual clips get feedback ratings, but the delivery moves through states as a unit.
+`DatasetLifecycle` tracks data availability: `pending` -> `active` -> `archived`. `DatasetRequestStatus` tracks the customer iteration cycle: `requested` -> `in_progress` -> `review_requested` -> `approved` (with `changes_requested` and `rejected` branches). See [[Dataset Lifecycle]] for the full state diagram.
 
 ### ClipFeedback supports timestamped, field-specific issues
 
@@ -49,19 +44,23 @@ State lives at the **delivery level**, not per-clip. Individual clips get feedba
 - `metadata_field`: links feedback to a specific metadata field (e.g. "avg_face_size is wrong")
 - `resolved_in_version_id` + `is_resolved`: tracks issue resolution across versions
 
+### Delivery is reserved for final output (not iteration)
+
+The Delivery model exists in the backend but is not part of the current frontend flow. The iteration/feedback cycle happens on datasets directly. Delivery may be used in the future for the "ship approved dataset to customer" step.
+
 ## Models Reference
 
 | Model | File | Key Fields |
 |-------|------|-----------|
-| Dataset | `app/blueprints/dataset.py` | name, description, status, bucket_path |
-| DatasetVersion | `app/blueprints/dataset.py` | dataset_id, version_number, parent_version_id, created_by |
+| Dataset | `app/blueprints/dataset.py` | name, description, lifecycle, request_status, bucket_path |
+| DatasetVersion | `app/blueprints/dataset.py` | dataset_id, version_number, parent_version_id, created_by, commit_message |
 | DatasetVersionVideo | `app/blueprints/dataset.py` | dataset_version_id, video_id |
-| Video | `app/blueprints/video.py` | delivery_id, uri, fps, height, width, source, language |
-| Clip | `app/blueprints/clip.py` | video_id, dataset_version_id, uri, start/end_time, duration, avg_face_size, max_num_faces, is_full_body, has_overlay |
-| Delivery | `app/blueprints/delivery.py` | dataset_version_id, customer_request_description, created_by, status |
-| DeliveryAccess | `app/blueprints/delivery_access.py` | delivery_id, user_id, role |
-| ClipFeedback | `app/blueprints/clip_feedback.py` | clip_id, delivery_id, user_id, rating, comment, timestamp, metadata_field, is_resolved, resolved_in_version_id |
-| DeliveryFeedback | `app/blueprints/delivery_feedback.py` | delivery_id, user_id, status, summary |
+| DatasetAssignment | `app/blueprints/dataset_assignment.py` | dataset_id, user_id, role |
+| Video | `app/blueprints/video.py` | delivery_id, uri, fps, height, width, extra_metadata |
+| Clip | `app/blueprints/clip.py` | video_id, dataset_version_id, uri, start/end_time, duration, extra_metadata |
+| ClipFeedback | `app/blueprints/clip_feedback.py` | clip_id, dataset_id, dataset_version_id, user_id, rating, comment, timestamp, metadata_field, is_resolved, resolved_in_version_id |
+| DatasetReview | `app/blueprints/dataset_review.py` | dataset_id, dataset_version_id, user_id, review_type, clip_id, clip_timestamp, comment, status, resolved_in_version_id |
+| DatasetReviewReply | `app/blueprints/dataset_review.py` | review_id, user_id, comment |
 
 ## See Also
 

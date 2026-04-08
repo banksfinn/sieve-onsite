@@ -12,10 +12,19 @@ class AccessLevel(str, Enum):
     admin = "admin"
 
 
-class DatasetStatus(str, Enum):
-    requested = "requested"
-    initialized = "initialized"
+class DatasetLifecycle(str, Enum):
+    pending = "pending"
     active = "active"
+    archived = "archived"
+
+
+class DatasetRequestStatus(str, Enum):
+    requested = "requested"
+    in_progress = "in_progress"
+    review_requested = "review_requested"
+    changes_requested = "changes_requested"
+    approved = "approved"
+    rejected = "rejected"
 
 
 class DeliveryStatus(str, Enum):
@@ -46,3 +55,14 @@ class DeliveryFeedbackStatus(str, Enum):
     approved = "approved"
     needs_changes = "needs_changes"
     rejected = "rejected"
+
+
+class ReviewType(str, Enum):
+    review = "review"
+    request_for_deletion = "request_for_deletion"
+
+
+class ReviewStatus(str, Enum):
+    open = "open"
+    closed = "closed"
+    auto_completed = "auto_completed"

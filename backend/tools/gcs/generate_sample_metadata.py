@@ -12,7 +12,7 @@ import json
 import random
 import sys
 
-from google.cloud import storage
+from storage_manager.clients.gcs_client import GCSClient
 
 
 BUCKET_NAME = "product-onsite"
@@ -27,8 +27,8 @@ MAX_CLIP_DURATION = 420
 
 
 def get_video_blobs(prefix: str | None = None) -> list:
-    client = storage.Client()
-    blobs = client.list_blobs(BUCKET_NAME, prefix=prefix)
+    gcs = GCSClient(bucket_name=BUCKET_NAME)
+    blobs = gcs.list_blobs(prefix=prefix)
     return [b for b in blobs if b.name.endswith((".mp4", ".webm", ".mov"))]
 
 
@@ -70,19 +70,25 @@ def generate_clip(video_id: str, clip_uri: str, start: int, duration: int) -> di
     }
 
 
-def generate_clips_for_video(video_id: str, num_clips: int, sample_prefix: str) -> list[dict]:
-    clips = []
-    cursor = 0
+def generate_clips_for_blobs(video_id: str, blobs: list, num_clips: int) -> list[dict]:
+    """Generate clip metadata using real blob paths from GCS.
 
-    for _ in range(num_clips):
+    Each clip references a real video file in the bucket. If there are more
+    clips requested than blobs, blobs are reused with different time offsets.
+    """
+    clips = []
+
+    for i in range(num_clips):
+        blob = blobs[i % len(blobs)]
+        uri = f"gs://{BUCKET_NAME}/{blob.name}"
+
+        # Stagger start times so multiple clips from the same blob don't overlap
+        base_offset = (i // len(blobs)) * MAX_CLIP_DURATION
         gap = random.randint(1, 60)
-        start = cursor + gap
+        start = base_offset + gap
         duration = random.randint(MIN_CLIP_DURATION, MAX_CLIP_DURATION)
-        clip_hash = f"{random.getrandbits(64):016x}"
-        uri = f"gs://{BUCKET_NAME}/{sample_prefix}clips/{video_id}_{clip_hash}.mp4"
 
         clips.append(generate_clip(video_id, uri, start, duration))
-        cursor = start + duration
 
     return clips
 
@@ -114,10 +120,13 @@ def main():
         print("No video files found in bucket.", file=sys.stderr)
         sys.exit(1)
 
-    # Deduplicate by video_id
-    video_ids = list({video_id_from_blob(b) for b in blobs})
-    video_ids.sort()
-    print(f"Found {len(blobs)} clips across {len(video_ids)} unique videos.", file=sys.stderr)
+    # Group blobs by video_id
+    blobs_by_video: dict[str, list] = {}
+    for blob in blobs:
+        vid = video_id_from_blob(blob)
+        blobs_by_video.setdefault(vid, []).append(blob)
+    video_ids = sorted(blobs_by_video.keys())
+    print(f"Found {len(blobs)} files across {len(video_ids)} unique videos.", file=sys.stderr)
 
     # Determine sample count
     total_samples = args.samples
@@ -128,16 +137,6 @@ def main():
         except (EOFError, KeyboardInterrupt):
             total_samples = default
             print(f"\nUsing default: {total_samples}", file=sys.stderr)
-
-    # Figure out the sample prefix for URIs
-    sample_prefix = ""
-    if args.prefix:
-        # e.g. "sample2/clips/" -> "sample2/"
-        parts = args.prefix.rstrip("/").split("/")
-        if len(parts) > 1:
-            sample_prefix = "/".join(parts[:-1]) + "/"
-        else:
-            sample_prefix = parts[0] + "/"
 
     # Distribute clips across videos
     if args.clips_per_video is not None:
@@ -156,7 +155,7 @@ def main():
 
     for vid in video_ids:
         all_videos.append(generate_video_metadata(vid))
-        all_clips.extend(generate_clips_for_video(vid, clips_per[vid], sample_prefix))
+        all_clips.extend(generate_clips_for_blobs(vid, blobs_by_video[vid], clips_per[vid]))
 
     clip_lines = [json.dumps(c) for c in all_clips]
     video_lines = [json.dumps(v) for v in all_videos]

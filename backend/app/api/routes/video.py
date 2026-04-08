@@ -10,7 +10,11 @@ router = APIRouter()
 
 
 @router.get("", response_model=BaseEntitySearchResponse[Video])
-async def search_videos(user: UserDependency, query: VideoQuery = VideoQuery()):
+async def search_videos(
+    user: UserDependency,
+    delivery_id: str | None = None,
+):
+    query = VideoQuery(delivery_id=delivery_id)
     return await video_store.search_entities(query)
 
 

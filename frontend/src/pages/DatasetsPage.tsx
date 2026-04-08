@@ -21,10 +21,22 @@ import {
 import { useCurrentUser } from '@/store/components/authSlice';
 import { Plus, Database, ArrowRight } from 'lucide-react';
 
-const datasetStatusColors: Record<string, string> = {
+const requestStatusColors: Record<string, string> = {
     requested: 'bg-yellow-50 text-yellow-700',
-    initialized: 'bg-blue-50 text-blue-700',
-    active: 'bg-green-50 text-green-700',
+    in_progress: 'bg-blue-50 text-blue-700',
+    review_requested: 'bg-purple-50 text-purple-700',
+    changes_requested: 'bg-orange-50 text-orange-700',
+    approved: 'bg-green-50 text-green-700',
+    rejected: 'bg-red-50 text-red-700',
+};
+
+const requestStatusLabels: Record<string, string> = {
+    requested: 'requested',
+    in_progress: 'in progress',
+    review_requested: 'review requested',
+    changes_requested: 'changes requested',
+    approved: 'approved',
+    rejected: 'rejected',
 };
 
 function DatasetCard({
@@ -49,12 +61,12 @@ function DatasetCard({
                         <div className="flex items-center gap-2 mb-1">
                             <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="font-medium truncate">{dataset.name}</span>
-                            {dataset.status && (
+                            {dataset.request_status && (
                                 <Badge
                                     variant="outline"
-                                    className={`text-xs ${datasetStatusColors[dataset.status] ?? ''}`}
+                                    className={`text-xs ${requestStatusColors[dataset.request_status] ?? ''}`}
                                 >
-                                    {dataset.status}
+                                    {requestStatusLabels[dataset.request_status] ?? dataset.request_status}
                                 </Badge>
                             )}
                         </div>
@@ -109,7 +121,14 @@ export default function DatasetsPage() {
     const [createError, setCreateError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'mine' | 'unassigned'>('all');
 
-    const { data: datasetsResponse, isLoading } = useSearchDatasets({});
+    const { data: datasetsResponse, isLoading } = useSearchDatasets(
+        {},
+        { query: { refetchInterval: (query) => {
+            const entities = (query.state.data as { entities: Dataset[] } | undefined)?.entities;
+            const hasProcessing = entities?.some((d) => d.lifecycle === 'pending' && d.request_status !== 'requested');
+            return hasProcessing ? 3000 : false;
+        }}}
+    );
     const datasets = (datasetsResponse as { entities: Dataset[] } | undefined)?.entities ?? [];
 
     const { data: assignmentsResponse } = useSearchAssignments({});

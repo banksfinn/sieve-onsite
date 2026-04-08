@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppSidebar } from '@/components/common';
@@ -14,9 +14,12 @@ import {
     useCreateClipFeedback,
     useUpdateClipFeedback,
     useSearchDatasetVersions,
+    useGetVersionClips,
+    batchSignedUrls,
     ClipFeedback,
     ClipRating,
     DatasetVersion,
+    Clip,
     getSearchClipFeedbackQueryKey,
 } from '@/openapi/sieveOnsite';
 import {
@@ -160,7 +163,7 @@ function MetadataPanel({
 }
 
 // --- Feedback Item ---
-function FeedbackItem({
+const FeedbackItem = memo(function FeedbackItem({
     feedback,
     onResolve,
     onSeek,
@@ -224,7 +227,7 @@ function FeedbackItem({
             </div>
         </div>
     );
-}
+});
 
 // --- Feedback Form ---
 function FeedbackForm({
@@ -488,6 +491,23 @@ export default function ClipViewerPage() {
     const { data: versionsResponse } = useSearchDatasetVersions(dsId);
     const versions = (versionsResponse as { entities: DatasetVersion[] } | undefined)?.entities ?? [];
 
+    // Load all clips in this version for navigation + batch URL fetching
+    const { data: clipsResponse } = useGetVersionClips(dsId, verIdNum);
+    const clips = (clipsResponse as { entities: Clip[] } | undefined)?.entities ?? [];
+    const currentClipIndex = clips.findIndex((c) => c.id === cId);
+
+    // Batch-fetch signed URLs for all clips when clip list loads
+    const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+    useEffect(() => {
+        if (clips.length === 0) return;
+        const clipIds = clips.map((c) => c.id);
+        batchSignedUrls({ clip_ids: clipIds }).then((res) => {
+            setSignedUrls(res.urls);
+        });
+    }, [clips]);
+
+    const videoSrc = signedUrls[String(cId)];
+
     // Feedback for this clip in this dataset version
     const { data: feedbackResponse } = useSearchClipFeedback(dsId, verIdNum, cId);
     const allFeedback = (feedbackResponse as { entities: ClipFeedback[] } | undefined)?.entities ?? [];
@@ -508,6 +528,15 @@ export default function ClipViewerPage() {
             setCurrentTime(time);
         }
     }, []);
+
+    // Stable callback for feedback items — adjusts for clip start offset
+    const handleFeedbackSeek = useCallback((time: number) => {
+        if (videoRef.current && clip) {
+            const adjusted = time - clip.start_time;
+            videoRef.current.currentTime = adjusted;
+            setCurrentTime(adjusted);
+        }
+    }, [clip]);
 
     const handleResolve = (feedbackId: number) => {
         updateFeedback.mutate(
@@ -611,20 +640,45 @@ export default function ClipViewerPage() {
                         />
                     </div>
 
+                    {/* Preload adjacent clips */}
+                    <div className="hidden">
+                        {currentClipIndex > 0 && signedUrls[String(clips[currentClipIndex - 1].id)] && (
+                            <video
+                                key={`preload-prev-${clips[currentClipIndex - 1].id}`}
+                                src={signedUrls[String(clips[currentClipIndex - 1].id)]}
+                                preload="auto"
+                            />
+                        )}
+                        {currentClipIndex < clips.length - 1 && signedUrls[String(clips[currentClipIndex + 1].id)] && (
+                            <video
+                                key={`preload-next-${clips[currentClipIndex + 1].id}`}
+                                src={signedUrls[String(clips[currentClipIndex + 1].id)]}
+                                preload="auto"
+                            />
+                        )}
+                    </div>
+
                     {/* Center: Video player */}
                     <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
                         <div className="w-full max-w-4xl space-y-4">
                             {/* Video */}
                             <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                                <video
-                                    ref={videoRef}
-                                    src={clip.uri}
-                                    controls
-                                    className="w-full h-full"
-                                    onTimeUpdate={handleTimeUpdate}
-                                >
-                                    <track kind="captions" />
-                                </video>
+                                {videoSrc ? (
+                                    <video
+                                        ref={videoRef}
+                                        key={cId}
+                                        src={videoSrc}
+                                        controls
+                                        className="w-full h-full"
+                                        onTimeUpdate={handleTimeUpdate}
+                                    >
+                                        <track kind="captions" />
+                                    </video>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                                        Loading video...
+                                    </div>
+                                )}
                             </div>
 
                             {/* Feedback timeline visualization */}
@@ -698,7 +752,7 @@ export default function ClipViewerPage() {
                                         key={fb.id}
                                         feedback={fb}
                                         onResolve={handleResolve}
-                                        onSeek={(t) => seekTo(t - clip.start_time)}
+                                        onSeek={handleFeedbackSeek}
                                         isResolving={updateFeedback.isPending}
                                     />
                                 ))}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LogOut, Database, Shield, User, UserX, Wrench, type LucideIcon } from 'lucide-react';
+import { Home, LogOut, Database, Shield, User, UserX, Wrench, FlaskConical, Megaphone, Building2, type LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { clearUser, setUser, useCurrentUser } from '@/store/components/authSlice';
@@ -118,6 +118,13 @@ export function AppSidebar({
     const currentUser = useCurrentUser();
     const resolvedNavGroups = navGroups ?? getNavGroups(currentUser?.role, currentUser?.access_level);
 
+    const roleConfig: Record<string, { icon: LucideIcon; label: string }> = {
+        researcher: { icon: FlaskConical, label: 'Researcher' },
+        gtm: { icon: Megaphone, label: 'GTM' },
+        customer: { icon: Building2, label: 'Customer' },
+    };
+    const role = currentUser?.role ? roleConfig[currentUser.role] : null;
+
     const isImpersonating = currentUser?.impersonated_by != null;
 
     const { mutate: stopImpersonation } = useStopImpersonation({
@@ -171,6 +178,14 @@ export function AppSidebar({
                 <SidebarFooter>
                     {footer}
                     <SidebarMenu>
+                        {role && (
+                            <SidebarMenuItem>
+                                <SidebarMenuButton tooltip={role.label} className="cursor-default opacity-70">
+                                    <role.icon className="h-4 w-4" />
+                                    <span>{role.label}</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        )}
                         {isImpersonating && (
                             <SidebarMenuItem>
                                 <SidebarMenuButton
@@ -194,11 +209,11 @@ export function AppSidebar({
                 <SidebarRail />
             </Sidebar>
 
-            <SidebarInset>
-                <header className="flex h-14 items-center gap-2 border-b px-4">
+            <SidebarInset className="min-w-0 !min-h-0 h-svh overflow-hidden">
+                <header className="flex h-14 items-center gap-2 border-b px-4 shrink-0">
                     <SidebarTrigger />
                 </header>
-                <main className="flex-1 p-4">{children}</main>
+                <main className="flex-1 min-h-0 min-w-0 overflow-auto p-4">{children}</main>
             </SidebarInset>
         </SidebarProvider>
     );
