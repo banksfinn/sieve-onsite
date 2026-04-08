@@ -11,6 +11,7 @@ dependencies = [
     "oauth_manager",
     "database_manager",
     "logging_manager",
+    "storage_manager",
     "alembic-postgresql-enum>=1.4.0",
     "google-auth>=2.0.0",
     "aiohttp>=3.13.2",
@@ -46,6 +47,7 @@ user_management = { path = "libs/user_management", editable = true }
 oauth_manager = { path = "libs/oauth_manager", editable = true }
 database_manager = { path = "libs/database_manager", editable = true }
 logging_manager = { path = "libs/logging_manager", editable = true }
+storage_manager = { path = "libs/storage_manager", editable = true }
 mcp_server = { path = "tools/mcp_server", editable = true }
 
 [dependency-groups]

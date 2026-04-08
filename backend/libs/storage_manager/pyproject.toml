@@ -1,0 +1,18 @@
+[project]
+name = "storage_manager"
+version = "0.1.0"
+description = "Google Cloud Storage client wrapper"
+authors = [
+    {name = "Finn", email = "banks.finn@gmail.com"},
+]
+dependencies = [
+    "google-cloud-storage>=2.18.0",
+    "pydantic-settings>=2.6.1",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
