@@ -2,7 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Documentation System (REQUIRED)
+## Documentation Vault (REQUIRED - READ FIRST)
+
+This project maintains an Obsidian-style documentation vault in `docs/`. **Before starting any task**, read `AGENTS.md` in the project root and consult the relevant vault notes. Key entry points:
+
+- `docs/Index.md` - Full map of all documentation
+- `docs/Product Notes.md` - Business rules and customer constraints (ALWAYS check before product decisions)
+- `docs/Architecture/Architecture Overview.md` - System-level understanding
+- `docs/Decisions/` - Design decision rationale
+
+See `AGENTS.md` for the complete vault structure and navigation guide.
+
+## MCP Notes System (REQUIRED)
 
 This project uses a note-based documentation system in `.ai/notes/` accessible via MCP tools. **You MUST actively use this system throughout every task.**
 
@@ -27,7 +38,7 @@ This project uses a note-based documentation system in `.ai/notes/` accessible v
 - **User items** (`source: user`): Ask the user before making any edits
 - **LLM items** (`source: llm`): Can be updated directly via `update_item()`
 
-### MCP Tools Reference
+### MCP Tools Reference - Coding Notes
 | Tool | Purpose |
 |------|---------|
 | `get_notes_for_path(file_path)` | **Use first** - Get guidelines for a specific file |
@@ -36,6 +47,16 @@ This project uses a note-based documentation system in `.ai/notes/` accessible v
 | `create_note(id, title, purpose, paths)` | Create a new note |
 | `add_item(note_id, content)` | Add a guideline to a note |
 | `update_item(note_id, item_index, ...)` | Update an item |
+
+### MCP Tools Reference - Documentation Vault
+| Tool | Purpose |
+|------|---------|
+| `get_vault_index()` | **Read first** - Get the full vault map (docs/Index.md) |
+| `get_product_notes()` | **Check before product decisions** - Business rules and constraints |
+| `get_vault_note(name)` | Read a specific note by title or path |
+| `search_vault(query)` | Search all vault notes for a term |
+| `get_vault_area(area)` | Get all notes for an area (backend, frontend, auth, database, api, infrastructure, product) |
+| `list_design_decisions()` | List all architectural decision notes with summaries |
 
 ### Available Notes
 | Note ID | Scope |

@@ -70,6 +70,23 @@ mcp_server:
 	cd backend/tools && uv run python -m mcp_server.server
 
 # ------------------------------------------------------------
+# --------------- GCS Bucket Tools ---------------------------
+# ------------------------------------------------------------
+.PHONY: gcs_list, gcs_download, gcs_view
+
+# List bucket contents. Usage: make gcs_list [prefix=videos/]
+gcs_list:
+	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/list_bucket.py $(prefix)
+
+# Download a file. Usage: make gcs_download path=videos/clip.mp4
+gcs_download:
+	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/download_file.py $(path)
+
+# View videos in browser. Usage: make gcs_view [prefix=videos/]
+gcs_view:
+	cd backend && GOOGLE_APPLICATION_CREDENTIALS=../secrets/gcs-service-account.json uv run python tools/gcs/view_videos.py $(prefix)
+
+# ------------------------------------------------------------
 # -------------- Database Management -------------------------
 # ------------------------------------------------------------
 .PHONY: db_generate_migration, db_wipe, db_reset, db_apply_migration, db_shell

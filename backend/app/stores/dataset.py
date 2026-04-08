@@ -1,0 +1,68 @@
+from database_manager.blueprints.base_entity import BaseEntityDeleteRequest
+from database_manager.store.base_store import BaseEntityStore
+from sqlalchemy.sql import Select
+
+from app.blueprints.dataset import (
+    Dataset,
+    DatasetCreateRequest,
+    DatasetModel,
+    DatasetQuery,
+    DatasetUpdateRequest,
+    DatasetVersion,
+    DatasetVersionCreateRequest,
+    DatasetVersionModel,
+    DatasetVersionQuery,
+    DatasetVersionUpdateRequest,
+)
+
+
+class DatasetStore(
+    BaseEntityStore[
+        DatasetModel,
+        Dataset,
+        DatasetQuery,
+        DatasetCreateRequest,
+        DatasetUpdateRequest,
+        BaseEntityDeleteRequest,
+    ]
+):
+    entity_model = DatasetModel
+    entity = Dataset
+    entity_query = DatasetQuery
+    entity_create_request = DatasetCreateRequest
+    entity_update_request = DatasetUpdateRequest
+    entity_delete_request = BaseEntityDeleteRequest
+
+    def _apply_entity_specific_search(self, query: DatasetQuery, stmt: Select[tuple[DatasetModel]]) -> Select[tuple[DatasetModel]]:
+        if query.name:
+            stmt = stmt.filter(DatasetModel.name.ilike(f"%{query.name}%"))
+        return stmt
+
+
+class DatasetVersionStore(
+    BaseEntityStore[
+        DatasetVersionModel,
+        DatasetVersion,
+        DatasetVersionQuery,
+        DatasetVersionCreateRequest,
+        DatasetVersionUpdateRequest,
+        BaseEntityDeleteRequest,
+    ]
+):
+    entity_model = DatasetVersionModel
+    entity = DatasetVersion
+    entity_query = DatasetVersionQuery
+    entity_create_request = DatasetVersionCreateRequest
+    entity_update_request = DatasetVersionUpdateRequest
+    entity_delete_request = BaseEntityDeleteRequest
+
+    def _apply_entity_specific_search(
+        self, query: DatasetVersionQuery, stmt: Select[tuple[DatasetVersionModel]]
+    ) -> Select[tuple[DatasetVersionModel]]:
+        if query.dataset_id:
+            stmt = stmt.filter(DatasetVersionModel.dataset_id == query.dataset_id)
+        return stmt
+
+
+dataset_store = DatasetStore()
+dataset_version_store = DatasetVersionStore()

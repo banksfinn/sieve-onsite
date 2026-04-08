@@ -1,5 +1,6 @@
 .DS_Store
 secrets/
+downloads/
 backend/.venv
 infra/docker/local/.env
 infra/docker/deploy/.env

@@ -8,6 +8,7 @@ Provides MCP tools for common development tasks:
 - Python package management (uv)
 - Code quality (ruff, pyright)
 - LLM notes documentation system
+- Documentation vault tools (docs/ Obsidian vault)
 """
 
 import shlex
@@ -688,6 +689,240 @@ def rebuild_notes_index() -> CommandResult:
             output="",
             error=str(e),
         )
+
+
+# =============================================================================
+# Documentation Vault Tools (docs/ Obsidian vault)
+# =============================================================================
+
+VAULT_ROOT = PROJECT_ROOT / "docs"
+
+# Map short area names to the vault directories and notes most relevant to each
+VAULT_AREA_MAP: dict[str, list[str]] = {
+    "backend": [
+        "Architecture/Backend Architecture.md",
+        "Decisions/Async-First Backend.md",
+        "Decisions/Editable Library Installs.md",
+        "Decisions/Blueprint Pattern.md",
+    ],
+    "frontend": [
+        "Architecture/Frontend Architecture.md",
+        "Frontend/Provider Stack.md",
+        "Frontend/State Management.md",
+        "Frontend/Component Library.md",
+        "Decisions/Redux Plus React Query.md",
+    ],
+    "auth": [
+        "Decisions/Cookie-Based JWT Auth.md",
+        "Frontend/Auth Flow.md",
+        "API/Authentication Routes.md",
+        "Clients/GoogleOAuthClient.md",
+    ],
+    "database": [
+        "Clients/DatabaseClient.md",
+        "Clients/BaseEntityStore.md",
+        "Models/Data Model Overview.md",
+        "Models/BaseEntity.md",
+        "Decisions/Blueprint Pattern.md",
+    ],
+    "api": [
+        "API/API Overview.md",
+        "API/Authentication Routes.md",
+        "API/User Routes.md",
+        "Decisions/OpenAPI Type Generation.md",
+    ],
+    "infrastructure": [
+        "Architecture/Infrastructure.md",
+    ],
+    "product": [
+        "Product Notes.md",
+        "Project Requirements.md",
+    ],
+}
+
+
+class VaultNote(BaseModel):
+    """A note from the documentation vault."""
+
+    path: str
+    title: str
+    content: str
+
+
+class VaultSearchResult(BaseModel):
+    """A search match within a vault note."""
+
+    path: str
+    title: str
+    matching_lines: list[str]
+
+
+@mcp.tool()
+def get_vault_index() -> str:
+    """
+    Get the documentation vault index (Map of Content).
+
+    Returns the full Index.md which links to all vault notes.
+    Read this first to understand what documentation is available.
+    """
+    index_path = VAULT_ROOT / "Index.md"
+    if not index_path.exists():
+        return "Vault index not found at docs/Index.md"
+    return index_path.read_text()
+
+
+@mcp.tool()
+def get_vault_note(name: str) -> VaultNote | str:
+    """
+    Read a specific vault note by name.
+
+    Searches for the note across all vault subdirectories.
+    You can pass just the title (e.g., 'Cookie-Based JWT Auth')
+    or the full relative path (e.g., 'Decisions/Cookie-Based JWT Auth.md').
+
+    Args:
+        name: Note title or relative path within docs/
+    """
+    # Try as direct path first
+    if not name.endswith(".md"):
+        name_with_ext = name + ".md"
+    else:
+        name_with_ext = name
+
+    direct = VAULT_ROOT / name_with_ext
+    if direct.exists():
+        content = direct.read_text()
+        title = content.split("\n", 1)[0].lstrip("# ").strip() if content else name
+        return VaultNote(path=str(direct.relative_to(VAULT_ROOT)), title=title, content=content)
+
+    # Search all subdirectories for the filename
+    target_filename = Path(name_with_ext).name
+    for md_file in VAULT_ROOT.rglob("*.md"):
+        if md_file.name == target_filename:
+            content = md_file.read_text()
+            title = content.split("\n", 1)[0].lstrip("# ").strip() if content else name
+            return VaultNote(path=str(md_file.relative_to(VAULT_ROOT)), title=title, content=content)
+
+    return f"Note '{name}' not found in docs/"
+
+
+@mcp.tool()
+def search_vault(query: str) -> list[VaultSearchResult]:
+    """
+    Search the documentation vault for a term.
+
+    Searches note titles and content across all vault notes.
+    Returns matching notes with the lines that contain the query.
+
+    Args:
+        query: Text to search for (case-insensitive)
+    """
+    query_lower = query.lower()
+    results: list[VaultSearchResult] = []
+
+    for md_file in VAULT_ROOT.rglob("*.md"):
+        content = md_file.read_text()
+        title = content.split("\n", 1)[0].lstrip("# ").strip() if content else md_file.stem
+
+        matching_lines: list[str] = []
+        for line in content.splitlines():
+            if query_lower in line.lower():
+                matching_lines.append(line.strip())
+
+        if matching_lines:
+            results.append(
+                VaultSearchResult(
+                    path=str(md_file.relative_to(VAULT_ROOT)),
+                    title=title,
+                    matching_lines=matching_lines[:10],
+                )
+            )
+
+    return results
+
+
+@mcp.tool()
+def get_product_notes() -> str:
+    """
+    Get the product notes with business rules and customer constraints.
+
+    Returns docs/Product Notes.md which contains rules from product
+    conversations that affect implementation decisions. Check this
+    before making any product-facing changes.
+    """
+    notes_path = VAULT_ROOT / "Product Notes.md"
+    if not notes_path.exists():
+        return "Product Notes not found at docs/Product Notes.md"
+    return notes_path.read_text()
+
+
+@mcp.tool()
+def get_vault_area(area: str) -> list[VaultNote] | str:
+    """
+    Get all vault notes relevant to a specific area of the codebase.
+
+    Returns the full content of each note in the area. Available areas:
+    backend, frontend, auth, database, api, infrastructure, product.
+
+    Args:
+        area: Area name (backend, frontend, auth, database, api, infrastructure, product)
+    """
+    area_lower = area.lower()
+    if area_lower not in VAULT_AREA_MAP:
+        available = ", ".join(sorted(VAULT_AREA_MAP.keys()))
+        return f"Unknown area '{area}'. Available: {available}"
+
+    notes: list[VaultNote] = []
+    for rel_path in VAULT_AREA_MAP[area_lower]:
+        full_path = VAULT_ROOT / rel_path
+        if full_path.exists():
+            content = full_path.read_text()
+            title = content.split("\n", 1)[0].lstrip("# ").strip() if content else rel_path
+            notes.append(VaultNote(path=rel_path, title=title, content=content))
+
+    return notes
+
+
+@mcp.tool()
+def list_design_decisions() -> list[VaultNote]:
+    """
+    List all design decision notes with their summaries.
+
+    Returns the title and first paragraph of each note in
+    docs/Decisions/ to give a quick overview of all architectural
+    decisions and their rationale.
+    """
+    decisions_dir = VAULT_ROOT / "Decisions"
+    if not decisions_dir.exists():
+        return []
+
+    notes: list[VaultNote] = []
+    for md_file in sorted(decisions_dir.glob("*.md")):
+        content = md_file.read_text()
+        lines = content.splitlines()
+        title = lines[0].lstrip("# ").strip() if lines else md_file.stem
+
+        # Extract the first paragraph after the title as summary
+        summary_lines: list[str] = []
+        in_summary = False
+        for line in lines[1:]:
+            stripped = line.strip()
+            if not stripped and not in_summary:
+                continue
+            if stripped.startswith("#"):
+                if in_summary:
+                    break
+                in_summary = True
+                continue
+            if in_summary:
+                if not stripped:
+                    break
+                summary_lines.append(stripped)
+
+        summary = " ".join(summary_lines) if summary_lines else ""
+        notes.append(VaultNote(path=str(md_file.relative_to(VAULT_ROOT)), title=title, content=summary))
+
+    return notes
 
 
 if __name__ == "__main__":

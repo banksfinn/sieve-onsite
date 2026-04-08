@@ -1,8 +1,15 @@
 user_table_name = "users"
-item_table_name = "items"
-todo_table_name = "todos"
-tag_table_name = "tags"
-tag_member_table_name = "tag_members"
-todo_tag_table_name = "todo_tags"
-llm_conversation_message_table_name = "llm_conversation_messages"
-notification_log_table_name = "notification_logs"
+
+# Core domain
+dataset_table_name = "datasets"
+dataset_version_table_name = "dataset_versions"
+video_table_name = "videos"
+clip_table_name = "clips"
+
+# Delivery workflow
+delivery_table_name = "deliveries"
+delivery_access_table_name = "delivery_access"
+
+# Feedback
+clip_feedback_table_name = "clip_feedback"
+delivery_feedback_table_name = "delivery_feedback"
